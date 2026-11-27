@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111318" />
+  <meta name="description" content="Lehan AI Film Studio — LPP cinematic production workspace" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Lehan AI Film Studio</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="brand-mark">L</div><div><strong>LEHAN AI</strong><span>FILM STUDIO</span></div></div>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav>
+        <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
+        <button class="nav-item" data-view="projects"><span>▣</span> Proyek Film</button>
+        <button class="nav-item" data-view="characters"><span>♙</span> Master Character</button>
+        <button class="nav-item" data-view="storyboard"><span>▤</span> Storyboard & Prompt</button>
+        <button class="nav-item" data-view="engines"><span>◈</span> AI Engine</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="local-state"><i></i><span>Tersimpan di perangkat ini</span></div><small>LPP · PRODUCTION SYSTEM<br/>VERSION 0.1.0</small></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><button class="mobile-menu" id="menuBtn" aria-label="Buka menu">☰</button><div class="crumb">LPP <span>/</span> <b id="crumbTitle">Dashboard</b></div><div class="top-actions"><span class="offline-pill"><i></i> LOCAL WORKSPACE</span><button class="btn btn-outline btn-small" id="importBtn">↑ Impor JSON</button><button class="btn btn-outline btn-small" id="exportBtn">↓ Ekspor proyek</button><input id="importFile" type="file" accept="application/json,.json" hidden /></div></header>
+      <div class="content" id="app"></div>
+      <footer>LEHAN AI FILM STUDIO <span>·</span> Dibangun untuk produksi sinematik LPP</footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="projectDialog"><form method="dialog" id="projectForm"><div class="dialog-head"><div><span class="eyebrow">WORKSPACE</span><h2 id="projectDialogTitle">Proyek baru</h2></div><button class="icon-btn" value="cancel" aria-label="Tutup">×</button></div><label>Nama proyek<input id="projectName" required maxlength="80" placeholder="Contoh: PUTRI TUJUH" /></label><label>Deskripsi<textarea id="projectDescription" rows="3" placeholder="Gambaran singkat proyek film"></textarea></label><label>Genre<input id="projectGenre" placeholder="Legenda Melayu, drama sejarah" /></label><div class="dialog-actions"><button class="btn btn-outline" value="cancel">Batal</button><button class="btn btn-primary" id="saveProjectBtn" value="default">Simpan proyek</button></div></form></dialog>
+  <dialog id="characterDialog"><form method="dialog" id="characterForm"><div class="dialog-head"><div><span class="eyebrow">MASTER CHARACTER SHEET</span><h2 id="characterDialogTitle">Karakter baru</h2></div><button class="icon-btn" value="cancel">×</button></div><label>Nama karakter<input id="characterName" required maxlength="80" /></label><label>Deskripsi visual<textarea id="characterVisual" rows="3" placeholder="Wajah, usia tampak, rambut, busana, aksesori..."></textarea></label><label>Suara / voice mapping<input id="characterVoice" placeholder="Contoh: Charon" /></label><label>Aturan kontinuitas<textarea id="characterRules" rows="2" placeholder="Detail yang tidak boleh berubah"></textarea></label><div class="dialog-actions"><button class="btn btn-outline" value="cancel">Batal</button><button class="btn btn-primary" id="saveCharacterBtn" value="default">Simpan karakter</button></div></form></dialog>
+  <dialog id="clipDialog"><form method="dialog" id="clipForm"><div class="dialog-head"><div><span class="eyebrow">STORYBOARD</span><h2 id="clipDialogTitle">Klip baru</h2></div><button class="icon-btn" value="cancel">×</button></div><div class="form-grid"><label>Nomor klip<input id="clipNumber" type="number" min="1" value="1" required /></label><label>Durasi (detik)<input id="clipDuration" type="number" min="1" max="120" value="10" required /></label></div><label>Judul adegan<input id="clipTitle" required maxlength="100" placeholder="Contoh: Negeri Seri Bunga Tanjung" /></label><label>Deskripsi visual<textarea id="clipVisual" rows="3" placeholder="Apa yang terlihat di dalam adegan..."></textarea></label><label>Gerakan kamera & aksi<textarea id="clipMotion" rows="2" placeholder="Pergerakan kamera, aksi karakter, tempo..."></textarea></label><label>Audio & dialog<textarea id="clipAudio" rows="2" placeholder="Ambience, SFX, musik, dialog jika diperlukan..."></textarea></label><label>Karakter dalam klip<select id="clipCharacters" multiple size="3"></select><small>Pilih beberapa karakter bila diperlukan (Android: ketuk pilihan).</small></label><div class="dialog-actions"><button class="btn btn-outline" value="cancel">Batal</button><button class="btn btn-primary" id="saveClipBtn" value="default">Simpan klip</button></div></form></dialog>
+  <script src="app.js"></script>
+</body>
+</html>

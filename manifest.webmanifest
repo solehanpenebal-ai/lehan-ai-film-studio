@@ -1,0 +1,11 @@
+{
+  "name": "Lehan AI Film Studio",
+  "short_name": "Lehan Studio",
+  "description": "LPP cinematic production workspace",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1014",
+  "theme_color": "#111318",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
