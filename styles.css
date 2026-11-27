@@ -9,3 +9,49 @@
 
 /* Character & Continuity Intelligence v1 */
 .continuity-audit{border-color:#4a4435}.audit-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.audit-summary>div{background:#101318;border:1px solid var(--line);border-radius:10px;padding:12px}.audit-summary strong{display:block;font-size:22px;color:var(--gold2)}.audit-summary span{display:block;font-size:10px;color:var(--muted);margin-top:4px}.audit-list{display:grid;gap:8px;margin-top:14px}.audit-row{display:flex;gap:12px;align-items:flex-start;padding:11px;background:#101318;border:1px solid var(--line);border-radius:9px}.audit-level{font-size:9px;letter-spacing:.6px;font-weight:800;white-space:nowrap;padding:5px 7px;border-radius:6px}.audit-level.warning{color:#e5c17e;background:#59451d55}.audit-level.danger{color:#f09b9b;background:#612b2b66}.audit-row b{font-size:12px}.audit-row p{font-size:11px;color:var(--muted);line-height:1.5;margin:4px 0 0}@media(max-width:420px){.audit-summary{gap:6px}.audit-summary>div{padding:9px}.audit-summary strong{font-size:19px}.audit-level{font-size:8px;white-space:normal}}
+
+
+/* Mobile Production Workflow v1 */
+:root{scroll-padding-top:76px}
+button,.btn,select,input,textarea{touch-action:manipulation}
+button,.btn{min-height:38px}
+.prompt-box{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;max-width:100%;overflow-x:auto}
+.prompt-tools,.clip-actions,.card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.prompt-tools .btn,.clip-actions .btn,.card-actions .btn{min-height:42px}
+.character-card,.clip-card,.panel,.project-card{min-width:0;overflow-wrap:anywhere}
+input,select,textarea{max-width:100%;min-width:0}
+@media(max-width:800px){
+ .topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:8px;padding:9px 12px calc(9px + env(safe-area-inset-top))}
+ .crumb{flex:1;min-width:0}
+ .top-actions{order:3;width:100%;display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 0 5px;scrollbar-width:thin}
+ .top-actions .btn{flex:0 0 auto;min-height:42px;font-size:11px;padding:9px 12px;white-space:nowrap}
+ .content{padding:18px 12px calc(28px + env(safe-area-inset-bottom))}
+ .page-head{gap:12px}
+ .page-head .btn{min-height:44px}
+ .panel{padding:15px}
+ .form-grid{grid-template-columns:1fr}
+ label{display:block;min-width:0}
+ input,select,textarea{font-size:16px;min-height:44px}
+ textarea{min-height:92px}
+ .clip-card{gap:10px;padding:12px}
+ .clip-actions{grid-column:1/-1}
+ .clip-actions .btn,.clip-actions .icon-btn{min-height:42px}
+ .prompt-box{font-size:12px;line-height:1.55;max-height:48vh;overflow:auto}
+ dialog{width:calc(100% - 16px);max-height:calc(100dvh - 24px);padding:17px;margin:auto}
+ .dialog-actions{position:sticky;bottom:-17px;background:#191d24;padding:12px 0 max(8px,env(safe-area-inset-bottom));flex-wrap:wrap}
+ .dialog-actions .btn{min-height:44px}
+}
+@media(max-width:420px){
+ .topbar{align-items:center}
+ .mobile-menu{width:42px;height:42px;flex:0 0 42px}
+ .crumb{font-size:11px}
+ .top-actions .btn{font-size:10px;padding:8px 10px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stats .stat:last-child{grid-column:1/-1}
+ .audit-row{gap:8px}
+ .audit-level{max-width:88px}
+ .prompt-tools .btn{flex:1 1 145px}
+ .dialog-head{gap:10px}
+ .dialog-actions{justify-content:stretch}
+ .dialog-actions .btn{flex:1}
+}
