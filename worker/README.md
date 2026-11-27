@@ -1,39 +1,39 @@
 # Lehan AI Film Studio — OpenAI Worker
 
-This is a **backend foundation**, not a deployed or active AI integration yet.
+This Worker is a backend foundation. It is **not an active AI integration** until the runtime variables and OpenAI secret are configured, the Worker is deployed, and the endpoint is tested.
 
-## Security design
+## Authentication design (no Cloudflare Access dependency)
 
+The Worker authenticates one explicitly allowed Firebase user:
+
+- Firebase Authentication is used with the no-cost Spark plan and an email/password or Google sign-in provider. Do not use phone/SMS authentication for this setup.
+- The browser obtains a Firebase ID token after sign-in and sends it as `Authorization: Bearer <ID_TOKEN>`.
+- The Worker verifies the JWT signature using Google's Secure Token public JWKs and validates `aud`, `iss`, `sub`, `exp`, `iat`, `auth_time`, `email`, and `email_verified`.
+- The Worker only accepts the exact email configured in `FIREBASE_ALLOWED_EMAIL`.
 - The browser never receives the OpenAI API key.
-- Requests are accepted only from the GitHub Pages origin configured in `src/index.js`.
-- The Worker validates the Cloudflare Access JWT signature, issuer, audience, and expiry.
-- The Worker accepts only `POST /api/chat`, JSON requests, bounded input sizes, and bounded output tokens.
-- OpenAI Responses API requests use `store: false`.
-- The Worker does not write to the film workspace or mutate canonical project data.
+- CORS only allows the production GitHub Pages origin. CORS is not authentication; Firebase token verification is required.
 
-CORS origin checks alone are not authentication. **Do not deploy this Worker as a public endpoint without configuring Cloudflare Access in front of it.**
+## Runtime configuration
 
-## Required Cloudflare setup
+Set these under the Worker **Settings → Variables and Secrets → Runtime variables**:
 
-1. Create a Cloudflare Worker named `lehan-ai-film-studio-ai` and deploy this folder.
-2. Attach a Cloudflare Access application/policy to the Worker hostname. Allow only the intended user identity.
-3. Set Worker variables:
-   - `CF_ACCESS_TEAM_DOMAIN`: your Cloudflare Access team domain, without `https://`.
-   - `CF_ACCESS_AUD`: the exact Application Audience (AUD) tag from the Access application.
-   - `OPENAI_MODEL`: a model available to your OpenAI API project.
-4. Add `OPENAI_API_KEY` as an encrypted Worker secret. Never put it in `vars`, GitHub, or browser code.
-5. Test the Access-protected endpoint before connecting the PWA.
+- `FIREBASE_PROJECT_ID`: exact Firebase project ID (public project identifier).
+- `FIREBASE_ALLOWED_EMAIL`: the one verified email address allowed to use this Worker.
+- `OPENAI_MODEL`: a model enabled for the OpenAI API project.
 
-Example secret setup using Wrangler:
-```sh
-npx wrangler secret put OPENAI_API_KEY
-```
+Add `OPENAI_API_KEY` separately as an encrypted Worker secret. Never put it in GitHub, a plain variable, app JavaScript, or chat messages.
 
-## Endpoint contract
+## Endpoint
 
 `POST /api/chat`
 
-Request:
+Headers:
+```http
+Content-Type: application/json
+Authorization: Bearer <Firebase ID token>
+```
+
+Body:
 ```json
 {
   "message": "Review the active episode outline.",
@@ -41,20 +41,30 @@ Request:
 }
 ```
 
-Response:
-```json
-{
-  "reply": "Review and recommendations...",
-  "model": "configured-model",
-  "responseId": "..."
-}
-```
+## Limits and protections
 
-## Important limitations before production
+- Only `POST /api/chat` is accepted.
+- Exact allowed browser origin only.
+- 48 KiB request body, 6,000-character message, 30,000-character context.
+- 1,800 maximum output tokens.
+- OpenAI Responses API uses `store: false`.
+- The Worker does not write to workspace storage or mutate approved film canon.
+- Firebase token verification keys are cached in memory for up to one hour.
+- Add Cloudflare rate limiting and OpenAI project spending limits before real usage.
 
-- This Worker is not deployed by GitHub Pages and has not been connected to the PWA.
-- Configure Cloudflare Access before exposing the Worker hostname.
-- Add Cloudflare-side rate limiting and OpenAI project spending limits before real use.
-- The app must send the Access-protected request with the correct authentication flow; this needs a real browser test.
+## Deployment and testing checklist
+
+1. Create a Firebase project on Spark (no payment method required for Firebase Authentication's no-cost options).
+2. Enable Email/Password sign-in or Google sign-in; do not enable phone/SMS sign-in for this no-card setup.
+3. Create one user and verify the email address.
+4. Configure the three runtime variables above.
+5. Add `OPENAI_API_KEY` as an encrypted secret.
+6. Keep `workers.dev` disabled until authentication and rate limits are reviewed.
+7. Test missing token (must return 401), wrong email (401), unverified email (401), valid allowed user (reaches provider configuration), CORS preflight, and the real browser flow.
+8. Only then connect the app UI to Firebase sign-in and this Worker.
+
+## Important
+
 - API usage is billed separately from a ChatGPT subscription.
+- Do not deploy an unauthenticated endpoint or expose the OpenAI key.
 - Google Flow rendering and CapCut editing remain separate workflows.
