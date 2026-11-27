@@ -113,7 +113,7 @@ function buildPrompt(c,p){
 function buildAudioPrompt(c,p){
  const chars=p.characters||[],b=normalizeBible(p);
  const voices=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
- const visualIds=new Set(c.characterIds||[]);
+ const visualIds=new Set((c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(x=>x&&!isNarrator(x)).map(x=>x.id));
  const voiceMap=voices.length?voices.map(x=>'- '+x.name+' — '+(visualIds.has(x.id)?'voice of selected on-screen character; visible speech/lip-sync only if explicitly directed':'off-screen voice / narration')+'; preset: '+(x.voice||'not specified')+'; performance notes: '+(x.rules||'follow approved voice identity; do not imitate another character')).join('\n'):'Tidak ada voice mapping yang dipilih. Jangan menciptakan narator atau suara karakter.';
  const dialogue=c.dialogue||'Tidak ada dialog. Jangan menciptakan kalimat, gumaman, tawa, atau lip-sync.';
  return [
