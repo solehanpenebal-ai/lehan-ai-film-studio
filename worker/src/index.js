@@ -40,7 +40,7 @@ async function getJwks(teamDomain) {
 }
 
 async function verifyAccessJwt(token, env) {
-  const teamDomain = String(env.CF_ACCESS_TEAM_DOMAIN || "").replace(/^https?:\\/\\//, "").replace(/\\/$/, "");
+  const teamDomain = String(env.CF_ACCESS_TEAM_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
   const audience = String(env.CF_ACCESS_AUD || "");
   if (!teamDomain || !audience) throw new Error("Access authentication is not configured");
   const parts = token.split(".");
