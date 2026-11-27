@@ -50,116 +50,90 @@ function storyboard(p){if(!p)return empty('Pilih proyek','Buat atau pilih proyek
 function engines(){return `${head('AI CONNECTIVITY','AI Engine','Pilih alur kerja manual sekarang; koneksi otomatis hanya diaktifkan setelah API resmi, izin, keamanan, dan biaya diverifikasi.')}<div class="panel"><h3>Google Flow · Mode manual aktif</h3><p>Lehan AI Film Studio menyiapkan prompt, daftar referensi karakter, arahan kamera, kontinuitas, ambience dan SFX. Salin prompt, unduh gambar karakter, lalu lampirkan secara manual di Google Flow untuk rendering.</p><div class="tag">READY FOR MANUAL WORKFLOW</div></div><div class="panel"><h3>Mode hybrid · API-ready, belum terhubung</h3><p>Struktur proyek mendukung rencana integrasi provider melalui API resmi. Tidak ada rendering otomatis yang berjalan saat ini. API key tidak boleh disimpan di browser atau di dalam file JavaScript aplikasi.</p><div class="tag">AUTOMATION NOT CONNECTED</div></div><div class="engine-grid">${[['Runway','Video generation API','docs.dev.runwayml.com'],['Luma','Video and image generation API','docs.agents.lumalabs.ai'],['Kling AI','Periksa akses API resmi dan ketentuan akun','kling.ai'],['Voice provider','Narasi dan dialog karakter','']].map((e,i)=>`<article class="engine-card"><div class="engine-icon">${['▶','✧','◉','♫'][i]}</div><div><h3>${e[0]}</h3><p>${e[1]}</p><div class="status">● BELUM TERHUBUNG</div>${e[2]?`<p><a href="https://${e[2]}" target="_blank" rel="noreferrer" style="color:var(--gold2)">Situs / dokumentasi ↗</a></p>`:''}</div></article>`).join('')}</div><p class="small-note">Status “belum terhubung” berarti aplikasi belum mengirim permintaan rendering ke provider. Ketersediaan API, model, wilayah, biaya, dan izin harus diverifikasi sebelum integrasi.</p>`}
 function empty(title,desc){return `<div class="empty"><strong>${title}</strong>${desc}</div>`}
 function buildPrompt(c,p){
- const b=normalizeBible(p);
- const chars=p.characters||[];
+ const b=normalizeBible(p),chars=p.characters||[];
  const selectedVisual=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
  const selectedVoice=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
  const visualChars=selectedVisual.filter(x=>!isNarrator(x));
  const voiceChars=[...new Map([...selectedVoice,...selectedVisual.filter(isNarrator)].map(x=>[x.id,x])).values()];
- const characterSection=visualChars.length?visualChars.map(x=>\`ON-SCREEN CHARACTER — \${x.name}
-Identity / role: \${x.identity||'Use the approved Master Character Sheet.'}
-Face identity: \${x.face||'Preserve the attached approved face reference exactly; do not redesign.'}
-Hair / headwear: \${x.hair||'Preserve the approved reference.'}
-Body / posture: \${x.body||'Preserve the approved proportions and posture.'}
-Costume: \${x.costume||'Preserve the approved costume; no substitutions.'}
-Accessories: \${x.accessories||'Preserve approved accessories.'}
-Visual description: \${x.visual||'No additional visual description supplied.'}
-Continuity rules: \${x.rules||'Preserve the approved character reference without alteration.'}
-Identity priority: attached approved reference images override any ambiguous text description.\`).join('\\n\\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
- const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return \`- \${x.name}: \${views}/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. Front/side/full-body views are not uploaded automatically.\`}).join('\\n'):'No on-screen character reference attachment is selected for this clip.';
- const voiceSection=voiceChars.length?voiceChars.map(x=>{const onScreen=visualChars.some(v=>v.id===x.id);return \`- \${x.name}: \${onScreen?'VOICE OF A SELECTED ON-SCREEN CHARACTER — do not infer lip-sync or visible speaking unless the exact scene direction requires it.':'OFF-SCREEN VOICE / NARRATION — audio only; do not render this speaker.'} Voice preset: \${x.voice||'Not specified'}. Performance/continuity notes: \${x.rules||'Follow the approved voice mapping; do not change voice identity.'}\`}).join('\\n'):'No voice mapping selected. Do not invent a speaker, narration, dialogue, or lip-sync.';
+ const characterSection=visualChars.length?visualChars.map(x=>[
+  'ON-SCREEN CHARACTER — '+x.name,
+  'Identity / role: '+(x.identity||'Use the approved Master Character Sheet.'),
+  'Face identity: '+(x.face||'Preserve the attached approved face reference exactly; do not redesign.'),
+  'Hair / headwear: '+(x.hair||'Preserve the approved reference.'),
+  'Body / posture: '+(x.body||'Preserve the approved proportions and posture.'),
+  'Costume: '+(x.costume||'Preserve the approved costume; no substitutions.'),
+  'Accessories: '+(x.accessories||'Preserve approved accessories.'),
+  'Visual description: '+(x.visual||'No additional visual description supplied.'),
+  'Continuity rules: '+(x.rules||'Preserve the approved character reference without alteration.'),
+  'Identity priority: attached approved reference images override any ambiguous text description.'
+ ].join('\n')).join('\n\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
+ const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. Front/side/full-body views are not uploaded automatically.';}).join('\n'):'No on-screen character reference attachment is selected for this clip.';
+ const voiceSection=voiceChars.length?voiceChars.map(x=>{const onScreen=visualChars.some(v=>v.id===x.id);return '- '+x.name+': '+(onScreen?'VOICE OF A SELECTED ON-SCREEN CHARACTER — do not infer lip-sync or visible speaking unless explicitly directed.':'OFF-SCREEN VOICE / NARRATION — audio only; do not render this speaker.')+' Voice preset: '+(x.voice||'Not specified')+'. Performance/continuity notes: '+(x.rules||'Follow the approved voice mapping; do not change voice identity.');}).join('\n'):'No voice mapping selected. Do not invent a speaker, narration, dialogue, or lip-sync.';
  const dialogue=c.dialogue||'NO DIALOGUE. Do not create spoken words, vocalizations, or lip-sync.';
  const audioNote=c.audio||'Audio is handled separately in the Audio Production Cue Sheet and final CapCut mix.';
- return \`PROMPT ENGINE 2.0 — VISUAL GENERATION BRIEF
-PROJECT: \${p.name}
-WORKSPACE: \${p.workspaceType==='lpp'?'LPP STUDIO — obey this project’s approved LPP Master Bible and character canon only.':'CREATOR STUDIO — obey only this project’s own approved creative bible; do not import LPP story, characters, dialect, or visual canon.'}
-WORKFLOW: \${p.generationMode==='hybrid'?'HYBRID — prepare a manual Google Flow prompt. No automatic rendering/API connection is active.':'MANUAL — copy this prompt and render manually in Google Flow or the selected engine.'}
-
-A. APPROVED PROJECT CANON
-Setting: \${b.setting}
-Visual style / format: \${b.visualStyle}
-Language and dialogue rules: \${b.languageRules}
-Global continuity rules: \${b.continuity}
-
-B. SCENE IDENTIFICATION
-Episode \${c.episodeNumber||1}: \${c.episodeTitle||'Episode '+(c.episodeNumber||1)}
-Scene \${String(c.number).padStart(2,'0')}: \${c.title}
-Duration: \${c.duration} seconds
-Frame: 16:9 cinematic composition.
-
-C. SCENE CONTENT — SOURCE OF TRUTH
-\${c.visual||'Scene visual description has not been supplied. Do not invent plot events or character actions.'}
-
-D. CINEMATOGRAPHY
-Shot size / composition: \${c.shot||'Choose a clear cinematic composition that serves only the described scene.'}
-Camera movement / on-screen action: \${c.motion||'Use restrained, motivated camera movement. Do not add actions not stated in the scene.'}
-Lighting / color grade: \${c.lighting||b.visualStyle||'Maintain natural, coherent lighting and the approved project color language.'}
-End frame / transition: \${c.transition||'End on a stable, coherent frame; do not introduce a new event.'}
-
-E. ON-SCREEN CHARACTER LOCK
-\${characterSection}
-
-F. REFERENCE IMAGE HANDOFF — MANUAL
-\${referenceHandoff}
-This workspace does not transmit images to Google Flow. Attach the approved reference files yourself before rendering. Never claim a reference is attached when it is not.
-
-G. VOICE CAST — AUDIO ROLE ONLY
-\${voiceSection}
-Exact dialogue supplied for this scene: \${dialogue}
-Dialogue language must follow the approved Master Bible. Do not translate, paraphrase, extend, or improvise the supplied dialogue.
-
-H. SOUND INTENT — OPTIONAL ENGINE GUIDANCE
-General audio direction: \${audioNote}
-Ambience / SFX: \${c.sfx||'No specific ambience or action SFX supplied. Do not invent a sound tied to an event that is not shown.'}
-Music: \${c.music||'No music generation requested. Add the approved score in the editing stage if needed.'}
-Use the separate Audio Production Cue Sheet as the authoritative detailed sound-design and CapCut mixing plan. Do not let audio instructions alter the visual scene.
-
-I. NON-NEGOTIABLE CONTINUITY / NEGATIVE CONSTRAINTS
-Preserve the exact approved face identity, facial proportions, age appearance, hairstyle, costume, accessories, body proportions, and character identity. No face morphing, beautification redesign, costume/color substitutions, missing or added accessories, duplicate people, extra characters, unintended crowd, scene/time/weather changes, flicker, warped anatomy, text, subtitles, logos, or watermarks. Preserve established environment, lighting logic, and color grade across adjacent clips.
-
-J. SOURCE DISCIPLINE
-Use only facts and actions explicitly present in this scene and approved project canon. If a detail is missing, keep it neutral or omit it. Do not invent plot, dialogue, props, locations, character relationships, or camera-visible actions. A prompt is an instruction only; it does not mean a render or audio has already been generated.\`;
+ return [
+ 'PROMPT ENGINE 2.0 — VISUAL GENERATION BRIEF',
+ 'PROJECT: '+p.name,
+ 'WORKSPACE: '+(p.workspaceType==='lpp'?'LPP STUDIO — obey this project’s approved LPP Master Bible and character canon only.':'CREATOR STUDIO — obey only this project’s own approved creative bible; do not import LPP story, characters, dialect, or visual canon.'),
+ 'WORKFLOW: '+(p.generationMode==='hybrid'?'HYBRID — prepare a manual Google Flow prompt. No automatic rendering/API connection is active.':'MANUAL — copy this prompt and render manually in Google Flow or the selected engine.'),
+ '', 'A. APPROVED PROJECT CANON',
+ 'Setting: '+(b.setting||'Not specified.'),
+ 'Visual style / format: '+(b.visualStyle||'Not specified.'),
+ 'Language and dialogue rules: '+(b.languageRules||'Not specified.'),
+ 'Global continuity rules: '+(b.continuity||'Not specified.'),
+ '', 'B. SCENE IDENTIFICATION',
+ 'Episode '+(c.episodeNumber||1)+': '+(c.episodeTitle||'Episode '+(c.episodeNumber||1)),
+ 'Scene '+String(c.number).padStart(2,'0')+': '+(c.title||'Untitled scene'),
+ 'Duration: '+(c.duration||'Not specified')+' seconds',
+ 'Frame: 16:9 cinematic composition.',
+ '', 'C. SCENE CONTENT — SOURCE OF TRUTH',
+ c.visual||'Scene visual description has not been supplied. Do not invent plot events or character actions.',
+ '', 'D. CINEMATOGRAPHY',
+ 'Shot size / composition: '+(c.shot||'Choose a clear cinematic composition that serves only the described scene.'),
+ 'Camera movement / on-screen action: '+(c.motion||'Use restrained, motivated camera movement. Do not add actions not stated in the scene.'),
+ 'Lighting / color grade: '+(c.lighting||b.visualStyle||'Maintain natural, coherent lighting and the approved project color language.'),
+ 'End frame / transition: '+(c.transition||'End on a stable, coherent frame; do not introduce a new event.'),
+ '', 'E. ON-SCREEN CHARACTER LOCK',characterSection,
+ '', 'F. REFERENCE IMAGE HANDOFF — MANUAL',referenceHandoff,
+ 'This workspace does not transmit images to Google Flow. Attach the approved reference files yourself before rendering. Never claim a reference is attached when it is not.',
+ '', 'G. VOICE CAST — AUDIO ROLE ONLY',voiceSection,
+ 'Exact dialogue supplied for this scene: '+dialogue,
+ 'Dialogue language must follow the approved Master Bible. Do not translate, paraphrase, extend, or improvise the supplied dialogue.',
+ '', 'H. SOUND INTENT — OPTIONAL ENGINE GUIDANCE',
+ 'General audio direction: '+audioNote,
+ 'Ambience / SFX: '+(c.sfx||'No specific ambience or action SFX supplied. Do not invent a sound tied to an event that is not shown.'),
+ 'Music: '+(c.music||'No music generation requested. Add the approved score in the editing stage if needed.'),
+ 'Use the separate Audio Production Cue Sheet as the authoritative detailed sound-design and CapCut mixing plan. Do not let audio instructions alter the visual scene.',
+ '', 'I. NON-NEGOTIABLE CONTINUITY / NEGATIVE CONSTRAINTS',
+ 'Preserve the exact approved face identity, facial proportions, age appearance, hairstyle, costume, accessories, body proportions, and character identity. No face morphing, beautification redesign, costume/color substitutions, missing or added accessories, duplicate people, extra characters, unintended crowd, scene/time/weather changes, flicker, warped anatomy, text, subtitles, logos, or watermarks. Preserve established environment, lighting logic, and color grade across adjacent clips.',
+ '', 'J. SOURCE DISCIPLINE',
+ 'Use only facts and actions explicitly present in this scene and approved project canon. If a detail is missing, keep it neutral or omit it. Do not invent plot, dialogue, props, locations, character relationships, or camera-visible actions. A prompt is an instruction only; it does not mean a render or audio has already been generated.'
+ ].join('\n');
 }
 function buildAudioPrompt(c,p){
- const chars=p.characters||[];
+ const chars=p.characters||[],b=normalizeBible(p);
  const voices=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
- const visualIds=new Set((c.characterIds||[]));
- const voiceMap=voices.length?voices.map(x=>\`- \${x.name} — \${visualIds.has(x.id)?'voice of selected on-screen character; visible speech/lip-sync only if explicitly directed':'off-screen voice / narration'}; preset: \${x.voice||'not specified'}; performance notes: \${x.rules||'follow approved voice identity; do not imitate another character'}\`).join('\\n'):'Tidak ada voice mapping yang dipilih. Jangan menciptakan narator atau suara karakter.';
+ const visualIds=new Set(c.characterIds||[]);
+ const voiceMap=voices.length?voices.map(x=>'- '+x.name+' — '+(visualIds.has(x.id)?'voice of selected on-screen character; visible speech/lip-sync only if explicitly directed':'off-screen voice / narration')+'; preset: '+(x.voice||'not specified')+'; performance notes: '+(x.rules||'follow approved voice identity; do not imitate another character')).join('\n'):'Tidak ada voice mapping yang dipilih. Jangan menciptakan narator atau suara karakter.';
  const dialogue=c.dialogue||'Tidak ada dialog. Jangan menciptakan kalimat, gumaman, tawa, atau lip-sync.';
- return \`AUDIO PRODUCTION CUE SHEET 2.0
-PROJECT: \${p.name}
-WORKSPACE: \${p.workspaceType==='lpp'?'LPP — follow approved LPP language and voice canon.':'CREATOR — follow this project’s own language and voice rules only.'}
-EPISODE \${c.episodeNumber||1}: \${c.episodeTitle||'Episode '+(c.episodeNumber||1)}
-SCENE \${String(c.number).padStart(2,'0')}: \${c.title}
-DURATION: \${c.duration} seconds
-
-1. MUSIC / BGM
-\${c.bgm||c.music||'No music specified. Add or compose the final score in CapCut only if required by the approved scene direction.'}
-
-2. ENVIRONMENTAL AMBIENCE
-\${c.ambience||'Not specified. Do not invent a location-specific ambience without scene evidence.'}
-
-3. TIMED SOUND EFFECTS (SFX)
-\${c.sfxCues||c.sfx||'No specific SFX cues supplied. Do not add action sounds for events that are not visible or stated.'}
-
-4. FOLEY / PHYSICAL DETAIL
-\${c.foley||'Use only when visually motivated: footsteps matching the surface, cloth movement, jewelry movement, breathing, contact, or object handling.'}
-
-5. EXACT DIALOGUE / VOICE
-Exact dialogue: \${dialogue}
-Language / dialect: \${normalizeBible(p).languageRules||'Follow the project’s approved language rules.'}
-Voice mapping:
-\${voiceMap}
-Do not translate, paraphrase, extend, or improvise the exact dialogue. If no dialogue is supplied, keep the scene silent apart from specified ambience/SFX/music.
-
-6. MIXING / SPATIAL PERSPECTIVE
-\${c.mix||c.audio||'Keep dialogue intelligible when present; ambience sits behind the action; synchronize SFX with visible action; preserve natural distance, stereo perspective, dynamics, and headroom.'}
-
-7. TRANSITION / AUDIO BRIDGE
-\${c.transition||'End naturally and prepare a restrained audio bridge to the next clip only when continuity requires it.'}
-
-8. CAPCUT POST-PRODUCTION
-Keep BGM, ambience, SFX, Foley, and dialogue on separate stems/tracks where possible. Align cues to the clip timeline and visible action. Control peaks and avoid masking dialogue. Google Flow may not generate every audio layer; use this cue sheet for manual sound design and mixing in CapCut. This is a production plan, not a claim that audio has been generated.\`;
+ return [
+ 'AUDIO PRODUCTION CUE SHEET 2.0',
+ 'PROJECT: '+p.name,
+ 'WORKSPACE: '+(p.workspaceType==='lpp'?'LPP — follow approved LPP language and voice canon.':'CREATOR — follow this project’s own language and voice rules only.'),
+ 'EPISODE '+(c.episodeNumber||1)+': '+(c.episodeTitle||'Episode '+(c.episodeNumber||1)),
+ 'SCENE '+String(c.number).padStart(2,'0')+': '+(c.title||'Untitled scene'),
+ 'DURATION: '+(c.duration||'Not specified')+' seconds',
+ '', '1. MUSIC / BGM',c.bgm||c.music||'No music specified. Add or compose the final score in CapCut only if required by the approved scene direction.',
+ '', '2. ENVIRONMENTAL AMBIENCE',c.ambience||'Not specified. Do not invent a location-specific ambience without scene evidence.',
+ '', '3. TIMED SOUND EFFECTS (SFX)',c.sfxCues||c.sfx||'No specific SFX cues supplied. Do not add action sounds for events that are not visible or stated.',
+ '', '4. FOLEY / PHYSICAL DETAIL',c.foley||'Use only when visually motivated: footsteps matching the surface, cloth movement, jewelry movement, breathing, contact, or object handling.',
+ '', '5. EXACT DIALOGUE / VOICE','Exact dialogue: '+dialogue,'Language / dialect: '+(b.languageRules||'Follow the project’s approved language rules.'),'Voice mapping:',voiceMap,
+ 'Do not translate, paraphrase, extend, or improvise the exact dialogue. If no dialogue is supplied, keep the scene silent apart from specified ambience/SFX/music.',
+ '', '6. MIXING / SPATIAL PERSPECTIVE',c.mix||c.audio||'Keep dialogue intelligible when present; ambience sits behind the action; synchronize SFX with visible action; preserve natural distance, stereo perspective, dynamics, and headroom.',
+ '', '7. TRANSITION / AUDIO BRIDGE',c.transition||'End naturally and prepare a restrained audio bridge to the next clip only when continuity requires it.',
+ '', '8. CAPCUT POST-PRODUCTION',
+ 'Keep BGM, ambience, SFX, Foley, and dialogue on separate stems/tracks where possible. Align cues to the clip timeline and visible action. Control peaks and avoid masking dialogue. Google Flow may not generate every audio layer; use this cue sheet for manual sound design and mixing in CapCut. This is a production plan, not a claim that audio has been generated.'
+ ].join('\n');
 }
 function bindDynamic(){document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));const np=$('#newProject');if(np)np.onclick=()=>openProject();document.querySelectorAll('[data-open-project]').forEach(b=>b.onclick=()=>{state.activeProjectId=b.dataset.openProject;save();setView('dashboard')});document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=()=>openProject(b.dataset.editProject));document.querySelectorAll('[data-delete-project]').forEach(b=>b.onclick=()=>{if(state.projects.length===1)return toast('Minimal satu proyek harus tersedia.');if(confirm('Hapus proyek beserta seluruh karakter dan storyboard?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.deleteProject);if(state.activeProjectId===b.dataset.deleteProject)state.activeProjectId=state.projects[0].id;save();render();toast('Proyek dihapus.')}});
 const nc=$('#newCharacter');if(nc)nc.onclick=()=>openCharacter();document.querySelectorAll('[data-download-character]').forEach(b=>b.onclick=()=>{const character=project().characters.find(x=>x.id===b.dataset.downloadCharacter);if(character?.referenceImage)downloadDataUrl(`${character.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-reference.jpg`,character.referenceImage)});
