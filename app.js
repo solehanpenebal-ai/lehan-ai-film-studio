@@ -169,35 +169,30 @@ function engines(){return `${head('AI CONNECTIVITY','AI Engine','Pilih alur kerj
 function empty(title,desc){return `<div class="empty"><strong>${title}</strong>${desc}</div>`}
 function buildPrompt(c,p){
  const b=normalizeBible(p),chars=p.characters||[];
- const selectedVisual=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
- const selectedVoice=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
- const visualChars=selectedVisual.filter(x=>!isNarrator(x));
- const voiceChars=[...new Map([...selectedVoice,...selectedVisual.filter(isNarrator)].map(x=>[x.id,x])).values()];
+ const selected=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
+ const visualChars=selected.filter(x=>!isNarrator(x));
  const characterSection=visualChars.length?visualChars.map(x=>[
   'ON-SCREEN CHARACTER — '+x.name,
   'Identity / role: '+(x.identity||'Use the approved Master Character Sheet.'),
-  'Face identity: '+(x.face||'Preserve the attached approved face reference exactly; do not redesign.'),
+  'Face identity: '+(x.face||'Preserve the approved face reference exactly; do not redesign.'),
   'Hair / headwear: '+(x.hair||'Preserve the approved reference.'),
   'Body / posture: '+(x.body||'Preserve the approved proportions and posture.'),
   'Costume: '+(x.costume||'Preserve the approved costume; no substitutions.'),
   'Accessories: '+(x.accessories||'Preserve approved accessories.'),
   'Visual description: '+(x.visual||'No additional visual description supplied.'),
   'Continuity rules: '+(x.rules||'Preserve the approved character reference without alteration.'),
-  'Identity priority: attached approved reference images override any ambiguous text description.'
+  'Identity priority: approved reference images and Master Character Sheet override ambiguous text.'
  ].join('\n')).join('\n\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
- const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. Front/side/full-body views are not uploaded automatically.';}).join('\n'):'No on-screen character reference attachment is selected for this clip.';
- const voiceSection=voiceChars.length?voiceChars.map(x=>{const onScreen=visualChars.some(v=>v.id===x.id);return '- '+x.name+': '+(onScreen?'VOICE OF A SELECTED ON-SCREEN CHARACTER — do not infer lip-sync or visible speaking unless explicitly directed.':'OFF-SCREEN VOICE / NARRATION — audio only; do not render this speaker.')+' Voice preset: '+(x.voice||'Not specified')+'. Performance/continuity notes: '+(x.rules||'Follow the approved voice mapping; do not change voice identity.');}).join('\n'):'No voice mapping selected. Do not invent a speaker, narration, dialogue, or lip-sync.';
- const dialogue=c.dialogue||'NO DIALOGUE. Do not create spoken words, vocalizations, or lip-sync.';
- const audioNote=c.audio||'Audio is handled separately in the Audio Production Cue Sheet and final CapCut mix.';
+ const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. References are not uploaded automatically.';}).join('\n'):'No on-screen character reference attachment is selected for this clip.';
  return [
- 'PROMPT ENGINE 2.0 — VISUAL GENERATION BRIEF',
+ 'PROMPT ENGINE 2.1 — VISUAL-ONLY GENERATION BRIEF',
  'PROJECT: '+p.name,
  'WORKSPACE: '+(p.workspaceType==='lpp'?'LPP STUDIO — obey this project’s approved LPP Master Bible and character canon only.':'CREATOR STUDIO — obey only this project’s own approved creative bible; do not import LPP story, characters, dialect, or visual canon.'),
- 'WORKFLOW: '+(p.generationMode==='hybrid'?'HYBRID — prepare a manual Google Flow prompt. No automatic rendering/API connection is active.':'MANUAL — copy this prompt and render manually in Google Flow or the selected engine.'),
+ 'WORKFLOW: MANUAL VISUAL GENERATION — use this prompt for Google Flow visual generation only. All narration, dialogue, music, ambience, SFX, Foley, and audio mixing are handled separately in CapCut.',
  '', 'A. APPROVED PROJECT CANON',
  'Setting: '+(b.setting||'Not specified.'),
  'Visual style / format: '+(b.visualStyle||'Not specified.'),
- 'Language and dialogue rules: '+(b.languageRules||'Not specified.'),
+ 'Language and dialogue rules: '+(b.languageRules||'Dialogue is not generated in this visual-only prompt.'),
  'Global continuity rules: '+(b.continuity||'Not specified.'),
  '', 'B. SCENE IDENTIFICATION',
  'Episode '+(c.episodeNumber||1)+': '+(c.episodeTitle||'Episode '+(c.episodeNumber||1)),
@@ -214,43 +209,51 @@ function buildPrompt(c,p){
  '', 'E. ON-SCREEN CHARACTER LOCK',characterSection,
  '', 'F. REFERENCE IMAGE HANDOFF — MANUAL',referenceHandoff,
  'This workspace does not transmit images to Google Flow. Attach the approved reference files yourself before rendering. Never claim a reference is attached when it is not.',
- '', 'G. VOICE CAST — AUDIO ROLE ONLY',voiceSection,
- 'Exact dialogue supplied for this scene: '+dialogue,
- 'Dialogue language must follow the approved Master Bible. Do not translate, paraphrase, extend, or improvise the supplied dialogue.',
- '', 'H. SOUND INTENT — OPTIONAL ENGINE GUIDANCE',
- 'General audio direction: '+audioNote,
- 'Ambience / SFX: '+(c.sfx||'No specific ambience or action SFX supplied. Do not invent a sound tied to an event that is not shown.'),
- 'Music: '+(c.music||'No music generation requested. Add the approved score in the editing stage if needed.'),
- 'Use the separate Audio Production Cue Sheet as the authoritative detailed sound-design and CapCut mixing plan. Do not let audio instructions alter the visual scene.',
- '', 'I. NON-NEGOTIABLE CONTINUITY / NEGATIVE CONSTRAINTS',
+ '', 'G. VISUAL-ONLY OUTPUT / AUDIO EXCLUSION',
+ 'Generate visuals only. Do not generate narration, dialogue, voice, lip-sync, music, ambience, sound effects, Foley, or any audio track. Do not add visible subtitles or text unless explicitly specified in the scene source.',
+ '', 'H. NON-NEGOTIABLE CONTINUITY / NEGATIVE CONSTRAINTS',
  'Preserve the exact approved face identity, facial proportions, age appearance, hairstyle, costume, accessories, body proportions, and character identity. No face morphing, beautification redesign, costume/color substitutions, missing or added accessories, duplicate people, extra characters, unintended crowd, scene/time/weather changes, flicker, warped anatomy, text, subtitles, logos, or watermarks. Preserve established environment, lighting logic, and color grade across adjacent clips.',
- '', 'J. SOURCE DISCIPLINE',
- 'Use only facts and actions explicitly present in this scene and approved project canon. If a detail is missing, keep it neutral or omit it. Do not invent plot, dialogue, props, locations, character relationships, or camera-visible actions. A prompt is an instruction only; it does not mean a render or audio has already been generated.'
+ '', 'I. SOURCE DISCIPLINE',
+ 'Use only facts and actions explicitly present in this scene and approved project canon. If a detail is missing, keep it neutral or omit it. Do not invent plot, props, locations, character relationships, or camera-visible actions. A prompt is an instruction only; it does not mean a render has already been generated.'
  ].join('\n');
 }
 function buildAudioPrompt(c,p){
  const chars=p.characters||[],b=normalizeBible(p);
- const voices=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
- const visualIds=new Set((c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(x=>x&&!isNarrator(x)).map(x=>x.id));
- const voiceMap=voices.length?voices.map(x=>'- '+x.name+' — '+(visualIds.has(x.id)?'voice of selected on-screen character; visible speech/lip-sync only if explicitly directed':'off-screen voice / narration')+'; preset: '+(x.voice||'not specified')+'; performance notes: '+(x.rules||'follow approved voice identity; do not imitate another character')).join('\n'):'Tidak ada voice mapping yang dipilih. Jangan menciptakan narator atau suara karakter.';
- const dialogue=c.dialogue||'Tidak ada dialog. Jangan menciptakan kalimat, gumaman, tawa, atau lip-sync.';
+ const selectedVoice=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
+ const selectedVisual=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
+ const voiceChars=[...new Map([...selectedVoice,...selectedVisual.filter(isNarrator)].map(x=>[x.id,x])).values()];
+ const voiceMap=voiceChars.length?voiceChars.map(x=>'- '+x.name+' — '+(isNarrator(x)?'OFF-SCREEN NARRATION; never visualize the narrator':selectedVisual.some(v=>v.id===x.id)?'voice of selected on-screen character; lip-sync only when explicitly specified':'OFF-SCREEN VOICE; do not visualize speaker')+'; Google Flow voice preset: '+(x.voice||'not specified')+'; performance/continuity: '+(x.rules||'follow approved voice identity without substitution')).join('\n'):'No voice mapping selected. Do not invent a narrator or character voice.';
+ const dialogue=(c.dialogue||'').trim()||'Tidak ada dialog. Jangan menciptakan kalimat, gumaman, tawa, atau lip-sync.';
+ const ambience=(c.ambience||'').trim()||'Tidak ada ambience spesifik yang ditetapkan pada data klip. Jangan mengarang ambience lokasi.';
+ const sfx=(c.sfxCues||c.sfx||'').trim()||'Tidak ada cue SFX spesifik. Jangan menambahkan bunyi aksi yang tidak terlihat atau tidak disebutkan.';
+ const music=(c.bgm||c.music||'').trim()||'Tidak ada musik spesifik yang ditetapkan. Tambahkan musik hanya jika diarahkan Master Storyline atau keputusan penyuntingan yang disetujui.';
+ const foley=(c.foley||'').trim()||'Gunakan hanya jika didukung aksi visual: langkah kaki sesuai permukaan, gerak kain/perhiasan, kontak, atau penanganan benda.';
+ const mix=(c.mix||'').trim()||'Jaga dialog tetap jelas; ambience berada di belakang aksi; sinkronkan SFX dengan gambar; pertahankan perspektif jarak, dinamika, dan headroom.';
+ const transition=(c.transition||'').trim()||'Akhiri secara alami. Gunakan audio bridge ke klip berikutnya hanya jika kesinambungan membutuhkannya.';
  return [
- 'AUDIO PRODUCTION CUE SHEET 2.0',
+ 'AUDIO PRODUCTION CUE SHEET 2.1 — CAPCUT POST-PRODUCTION',
  'PROJECT: '+p.name,
- 'WORKSPACE: '+(p.workspaceType==='lpp'?'LPP — follow approved LPP language and voice canon.':'CREATOR — follow this project’s own language and voice rules only.'),
+ 'WORKFLOW: Google Flow = visual only. Generate, record, arrange, and mix all audio separately in CapCut.',
  'EPISODE '+(c.episodeNumber||1)+': '+(c.episodeTitle||'Episode '+(c.episodeNumber||1)),
  'SCENE '+String(c.number).padStart(2,'0')+': '+(c.title||'Untitled scene'),
  'DURATION: '+(c.duration||'Not specified')+' seconds',
- '', '1. MUSIC / BGM',c.bgm||c.music||'No music specified. Add or compose the final score in CapCut only if required by the approved scene direction.',
- '', '2. ENVIRONMENTAL AMBIENCE',c.ambience||c.audio||'Not specified. Do not invent a location-specific ambience without scene evidence.',
- '', '3. TIMED SOUND EFFECTS (SFX)',c.sfxCues||c.sfx||'No specific SFX cues supplied. Do not add action sounds for events that are not visible or stated.',
- '', '4. FOLEY / PHYSICAL DETAIL',c.foley||'Use only when visually motivated: footsteps matching the surface, cloth movement, jewelry movement, breathing, contact, or object handling.',
- '', '5. EXACT DIALOGUE / VOICE','Exact dialogue: '+dialogue,'Language / dialect: '+(b.languageRules||'Follow the project’s approved language rules.'),'Voice mapping:',voiceMap,
- 'Do not translate, paraphrase, extend, or improvise the exact dialogue. If no dialogue is supplied, keep the scene silent apart from specified ambience/SFX/music.',
- '', '6. MIXING / SPATIAL PERSPECTIVE',c.mix||'Keep dialogue intelligible when present; ambience sits behind the action; synchronize SFX with visible action; preserve natural distance, stereo perspective, dynamics, and headroom.',
- '', '7. TRANSITION / AUDIO BRIDGE',c.transition||'End naturally and prepare a restrained audio bridge to the next clip only when continuity requires it.',
+ '', '1. MUSIC / BGM',music,
+ '', '2. ENVIRONMENTAL AMBIENCE',ambience,
+ '', '3. TIMED SOUND EFFECTS (SFX)',sfx,
+ '', '4. FOLEY / PHYSICAL DETAIL',foley,
+ '', '5. EXACT DIALOGUE / VOICE',
+ 'Exact dialogue: '+dialogue,
+ 'Narration language: Bahasa Indonesia baku dengan nuansa Melayu Riau, sesuai Master Bible.',
+ 'Character dialogue language: dialek Melayu Pesisir hanya jika dialog ditetapkan storyboard.',
+ 'Voice mapping:',voiceMap,
+ 'Narrator master voice: Charon — male adult, low pitch, calm, informative, authoritative; narration is off-screen and added separately in CapCut.',
+ 'Do not translate, paraphrase, extend, or improvise dialogue. If no dialogue is supplied, do not create speech, vocalizations, laughter, or lip-sync.',
+ '', '6. MIXING / SPATIAL PERSPECTIVE',mix,
+ '', '7. TRANSITION / AUDIO BRIDGE',transition,
  '', '8. CAPCUT POST-PRODUCTION',
- 'Keep BGM, ambience, SFX, Foley, and dialogue on separate stems/tracks where possible. Align cues to the clip timeline and visible action. Control peaks and avoid masking dialogue. Google Flow may not generate every audio layer; use this cue sheet for manual sound design and mixing in CapCut. This is a production plan, not a claim that audio has been generated.'
+ 'Keep narration, character dialogue, BGM, ambience, SFX, and Foley on separate tracks where possible. Align cues to the 10-second (or specified) clip timeline and visible action. Control peaks and avoid masking dialogue. Use fades and restrained transitions where appropriate. Google Flow is not responsible for generating any audio in this workflow.',
+ '', 'PRODUCTION SAFETY',
+ 'This cue sheet is a manual sound-design plan. Do not treat unspecified audio as confirmed. Do not invent sounds, dialogue, or music beyond the approved scene direction.'
  ].join('\n');
 }
 function bindDynamic(){const firebaseConfigSave=$('#saveAstraFirebaseConfig');if(firebaseConfigSave)firebaseConfigSave.onclick=()=>{try{const config=JSON.parse($('#astraFirebaseConfig').value);if(!config.apiKey||!config.authDomain||!config.projectId||!config.appId)throw new Error('Konfigurasi harus memuat apiKey, authDomain, projectId, dan appId.');localStorage.setItem(FIREBASE_CONFIG_KEY,JSON.stringify(config));toast('Konfigurasi Firebase disimpan. Aplikasi akan dimuat ulang.');location.reload();}catch(e){$('#astraFirebaseConfigStatus').textContent='Konfigurasi tidak valid: '+e.message;}};const workerSave=$('#saveAstraWorkerUrl');if(workerSave)workerSave.onclick=()=>{const value=$('#astraWorkerUrl').value.trim().replace(/\/$/,'');if(value&&!value.startsWith('https://')){toast('URL Worker harus diawali https://');return;}if(value)localStorage.setItem(AI_WORKER_URL_KEY,value);else localStorage.removeItem(AI_WORKER_URL_KEY);toast('URL Worker disimpan pada perangkat ini.');};const authStatus=$('#astraAuthStatus');const auth=getFirebaseAuth();const refreshAuthStatus=()=>{const u=auth.currentUser;if(authStatus)authStatus.textContent=u?'Login: '+u.email+(u.emailVerified?' · email terverifikasi':' · email belum diverifikasi'):'Belum login.';};if(authStatus){if(auth){refreshAuthStatus();auth.onAuthStateChanged(()=>refreshAuthStatus());}else authStatus.textContent='Konfigurasi Firebase belum disimpan.';}const signIn=$('#astraSignIn');if(signIn)signIn.onclick=async()=>{try{if(!auth)throw new Error('Simpan konfigurasi Firebase terlebih dahulu.');await auth.signInWithEmailAndPassword($('#astraAuthEmail').value.trim(),$('#astraAuthPassword').value);refreshAuthStatus();toast('Login Firebase berhasil.');}catch(e){toast('Login gagal: '+(e.code||e.message));}};const register=$('#astraRegister');if(register)register.onclick=async()=>{try{if(!auth)throw new Error('Simpan konfigurasi Firebase terlebih dahulu.');const cred=await auth.createUserWithEmailAndPassword($('#astraAuthEmail').value.trim(),$('#astraAuthPassword').value);await cred.user.sendEmailVerification();refreshAuthStatus();toast('Akun dibuat. Periksa email untuk verifikasi.');}catch(e){toast('Pendaftaran gagal: '+(e.code||e.message));}};const signOut=$('#astraSignOut');if(signOut)signOut.onclick=async()=>{if(!auth)return toast('Firebase belum dikonfigurasi.');await auth.signOut();refreshAuthStatus();toast('Logout berhasil.');};const verify=$('#astraVerifyEmail');if(verify)verify.onclick=async()=>{try{if(!auth?.currentUser)throw new Error('Login Firebase terlebih dahulu.');await auth.currentUser.sendEmailVerification();toast('Email verifikasi dikirim.');}catch(e){toast(e.message||'Gagal mengirim verifikasi.');}};const aiSend=$('#astraAiSend');if(aiSend)aiSend.onclick=async()=>{const status=$('#astraAiStatus'),reply=$('#astraAiReply'),message=$('#astraAiMessage').value.trim(),url=$('#astraWorkerUrl').value.trim().replace(/\/$/,'');try{if(!auth?.currentUser)throw new Error('Login Firebase terlebih dahulu.');if(!auth.currentUser.emailVerified)throw new Error('Verifikasi email akun Firebase terlebih dahulu.');if(!url)throw new Error('Isi URL Worker Cloudflare terlebih dahulu.');if(!message)throw new Error('Tulis pesan untuk Astra AI.');localStorage.setItem(AI_WORKER_URL_KEY,url);status.textContent='Menghubungkan ke Worker…';aiSend.disabled=true;const token=await auth.currentUser.getIdToken(true);const p=project();const context=$('#astraContextPacket').value;const response=await fetch(url+'/api/chat',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+token},body:JSON.stringify({message,context})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||('Permintaan gagal ('+response.status+').'));reply.textContent=data.reply||'Tidak ada jawaban.';status.textContent='Berhasil · model '+(data.model||'API')+' · data proyek tidak diubah.';}catch(e){status.textContent='Belum berhasil: '+e.message;}finally{aiSend.disabled=false;}};const aiClear=$('#astraAiClear');if(aiClear)aiClear.onclick=()=>{$('#astraAiReply').textContent='Jawaban AI akan tampil di sini.';$('#astraAiStatus').textContent='Hasil dibersihkan.';};const contextCopy=$('#copyAstraContext');if(contextCopy)contextCopy.onclick=async()=>{try{await navigator.clipboard.writeText($('#astraContextPacket').value);toast('Paket konteks berhasil disalin.')}catch{toast('Clipboard tidak tersedia. Gunakan tombol unduh JSON.')}};const contextDownload=$('#downloadAstraContext');if(contextDownload)contextDownload.onclick=()=>downloadText('lehan-ai-film-studio-astra-context.json',$('#astraContextPacket').value,'application/json');document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));const readMasterStory=()=>({logline:$('#storyLogline').value.trim(),synopsis:$('#storySynopsis').value.trim(),conflict:$('#storyConflict').value.trim(),themes:$('#storyThemes').value.trim(),notes:$('#storyNotes').value.trim()});const saveStory=$('#saveStoryDevelopment');if(saveStory)saveStory.onclick=()=>{project().storyDevelopment={...(project().storyDevelopment||{}),...readMasterStory()};if(save())toast('Master Storyline tersimpan.');};const newEpisode=$('#newEpisode');if(newEpisode)newEpisode.onclick=()=>{const p=project(),eps=getProjectEpisodes(p),number=Math.max(0,...eps.map(x=>Number(x.number)||0))+1;const ep={id:uid(),number,title:'Episode '+number,synopsis:'',masterStoryline:'',outline:'',status:'planning',notes:''};eps.push(ep);editingEpisodeId=ep.id;if(save()){render();toast('Episode baru ditambahkan.');}};document.querySelectorAll('[data-edit-episode]').forEach(b=>b.onclick=()=>{editingEpisodeId=b.dataset.editEpisode;render()});const readEpisode=()=>({number:Math.max(1,Number($('#episodeNumber').value)||1),title:$('#episodeTitle').value.trim(),status:$('#episodeStatus').value,synopsis:$('#episodeSynopsis').value.trim(),masterStoryline:$('#episodeMasterStoryline').value.trim(),outline:$('#episodeOutline').value.trim(),notes:$('#episodeNotes').value.trim()});const saveEpisode=$('#saveEpisode');if(saveEpisode)saveEpisode.onclick=()=>{const p=project(),ep=getProjectEpisodes(p).find(x=>x.id===editingEpisodeId);if(!ep)return;const data=readEpisode(),used=p.clips.some(c=>(Number(c.episodeNumber)||1)===Number(ep.number));if(used&&data.number!==ep.number){toast('Nomor episode tidak dapat diubah karena sudah dipakai klip storyboard.');return;}if(getProjectEpisodes(p).some(x=>x.id!==ep.id&&Number(x.number)===data.number)){toast('Nomor episode sudah digunakan. Pilih nomor lain.');return;}if(!data.title){toast('Judul episode wajib diisi.');return;}Object.assign(ep,data);if(save()){render();toast('Data episode tersimpan.');}};const sendEpisodeOutline=$('#sendEpisodeOutline');if(sendEpisodeOutline)sendEpisodeOutline.onclick=()=>{const p=project(),ep=getProjectEpisodes(p).find(x=>x.id===editingEpisodeId);if(!ep)return;const data=readEpisode();Object.assign(ep,data);if(!data.outline){toast('Isi outline adegan terlebih dahulu.');return;}if(!save())return;setView('storyboard');$('#directorEpisodeNumber').value=ep.number;$('#directorEpisodeTitle').value=ep.title;$('#directorScenes').value=ep.outline;toast('Outline episode dimuat ke Storyboard Director. Periksa sebelum membuat klip.');};const np=$('#newProject');if(np)np.onclick=()=>openProject();document.querySelectorAll('[data-open-project]').forEach(b=>b.onclick=()=>{const target=state.projects.find(p=>p.id===b.dataset.openProject);if(!target){toast('Proyek tidak ditemukan.');return;}state.activeProjectId=target.id;if(!save()){toast('Proyek gagal dibuka karena penyimpanan lokal bermasalah.');return;}setView('storyboard');toast('Proyek '+target.name+' dibuka di ruang produksi.');});document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=()=>openProject(b.dataset.editProject));document.querySelectorAll('[data-delete-project]').forEach(b=>b.onclick=()=>{if(state.projects.length===1)return toast('Minimal satu proyek harus tersedia.');if(confirm('Hapus proyek beserta seluruh karakter dan storyboard?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.deleteProject);if(state.activeProjectId===b.dataset.deleteProject)state.activeProjectId=state.projects[0].id;save();render();toast('Proyek dihapus.')}});
