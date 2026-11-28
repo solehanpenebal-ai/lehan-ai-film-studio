@@ -1,0 +1,12 @@
+{
+  "name": "lehan-ai-film-studio-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Authenticated OpenAI Responses API Worker for Lehan AI Film Studio",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.36.0"
+  }
+}
