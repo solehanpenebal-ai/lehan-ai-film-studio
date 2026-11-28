@@ -74,14 +74,20 @@ Body:
 
 This route uses the Cloudflare web dashboard and does not require a terminal.
 
-### A. Create the Worker shell
+### A. Deploy the Worker from GitHub (recommended for Android)
 
-1. Open the Cloudflare dashboard in a browser and sign in.
-2. Open **Workers & Pages** and choose **Create application** / **Create Worker** (the exact label may vary).
-3. Create a Worker named `lehan-ai-film-studio-ai`.
-4. Open its code editor (**Edit code**).
-5. Replace the starter code with the complete contents of this repository file: `worker/src/index.js`.
-6. Save and deploy the code. Do not share the editor with anyone and do not paste secrets into the source code.
+This method deploys the Worker together with `wrangler.toml`, including the `ASTRA_AI_RATE_LIMITER` binding. Do not use a manual code-only deployment for this project because that can omit the rate-limit binding.
+
+1. Open the Cloudflare dashboard and go to **Workers & Pages**.
+2. Select **Create application** → **GitHub** and authorize Cloudflare to access only the repository `solehanpenebal-ai/lehan-ai-film-studio`.
+3. Select that repository and its production branch.
+4. Set the Worker name to `lehan-ai-film-studio-ai`.
+5. Set **Root directory** to `worker`. This is essential: the folder contains both `wrangler.toml` and `src/index.js`.
+6. Leave **Build command** empty. Use **Deploy command** `npm run deploy` (or the default `npx wrangler deploy`).
+7. Select **Save and Deploy**. Confirm that the build succeeds and the Worker name is `lehan-ai-film-studio-ai`.
+8. Copy the deployed `workers.dev` URL. Do not paste any API key into the URL field in the app.
+
+Cloudflare Workers Builds supports connecting a GitHub repository and configuring a root directory and deploy command. See the official [Workers Builds documentation](https://developers.cloudflare.com/workers/ci-cd/builds/).
 
 ### B. Add runtime variables and the API secret
 
