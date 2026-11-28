@@ -50,7 +50,7 @@ Body:
 - OpenAI Responses API uses `store: false`.
 - The Worker does not write to workspace storage or mutate approved film canon.
 - Firebase token verification keys are cached in memory for up to one hour.
-- Add Cloudflare rate limiting and OpenAI project spending limits before real usage.
+- A Cloudflare Rate Limiting binding (`ASTRA_AI_RATE_LIMITER`) allows up to 5 authenticated chat requests per 60 seconds per Firebase user ID. Cloudflare documents this limiter as approximate and location-local; it is not a strict global quota or a spending cap. Configure a separate OpenAI project budget/usage alert before paid use.
 
 ## Deployment and testing checklist
 
@@ -58,10 +58,11 @@ Body:
 2. Enable Email/Password sign-in or Google sign-in; do not enable phone/SMS sign-in for this no-card setup.
 3. Create one user and verify the email address.
 4. Configure the three runtime variables above, including a verified model ID enabled for the API project.
-5. Add `OPENAI_API_KEY` as an encrypted secret.
-6. Keep `workers.dev` disabled until authentication and rate limits are reviewed.
-7. Test missing token (must return 401), wrong email (401), unverified email (401), valid allowed user (reaches provider configuration), CORS preflight, and the real browser flow.
-8. Only then connect the app UI to Firebase sign-in and this Worker.
+5. Configure the `ASTRA_AI_RATE_LIMITER` binding from `worker/wrangler.toml` (5 requests per 60 seconds). The namespace ID must be unique within your Cloudflare account.
+6. Add `OPENAI_API_KEY` as an encrypted secret.
+7. Keep `workers.dev` disabled until authentication and rate limits are reviewed.
+8. Test missing token (401), wrong email (401), unverified email (401), valid allowed user, excess requests (429), CORS preflight, and the real browser flow.
+9. Only then connect the app UI to Firebase sign-in and this Worker.
 
 ## Important
 
@@ -128,5 +129,5 @@ After adding them, select **Deploy**. Never send the API key to ChatGPT, put it 
 - If it returns HTTP 503, check Worker variables/secrets and deployment.
 - If the browser reports a network/CORS error, confirm the Worker URL and the GitHub Pages origin.
 
-**Important deployment gate:** Do not enable broad public access or announce the AI feature as live until the authentication tests pass and Cloudflare rate limiting plus OpenAI project spending limits have been configured. The current Worker restricts access to one verified email, but this is not a substitute for rate and spending controls.
+**Important deployment gate:** Do not enable broad public access or announce the AI feature as live until authentication tests pass, the `ASTRA_AI_RATE_LIMITER` binding is present, and OpenAI project spending controls are configured. Cloudflare Worker rate limiting is approximate and location-local; it does not guarantee a strict global request ceiling or cap OpenAI charges.
 
