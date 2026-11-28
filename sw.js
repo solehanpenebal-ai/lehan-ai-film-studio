@@ -1,1 +1,41 @@
-const CACHE='lpp-film-studio-v22';const FILES=['./','./index.html','./styles.css','./app.js','./backup-guard.js','./manifest.webmanifest','./icon.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match('./index.html'))))});
+const CACHE='lpp-film-studio-v23';
+const FILES=['./','./index.html','./styles.css','./app.js','./backup-guard.js','./manifest.webmanifest','./icon.svg'];
+self.addEventListener('install',event=>{
+ event.waitUntil((async()=>{
+  const cache=await caches.open(CACHE);
+  await cache.addAll(FILES);
+  await self.skipWaiting();
+ })());
+});
+self.addEventListener('activate',event=>{
+ event.waitUntil((async()=>{
+  const keys=await caches.keys();
+  await Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+  await self.clients.claim();
+ })());
+});
+self.addEventListener('fetch',event=>{
+ if(event.request.method!=='GET')return;
+ const url=new URL(event.request.url);
+ const isAppAsset=url.pathname.endsWith('/index.html')||url.pathname.endsWith('/app.js')||url.pathname.endsWith('/styles.css')||url.pathname.endsWith('/sw.js');
+ if(isAppAsset){
+  event.respondWith((async()=>{
+   try{
+    const response=await fetch(event.request,{cache:'no-store'});
+    if(response.ok){
+     const cache=await caches.open(CACHE);
+     cache.put(event.request,response.clone()).catch(()=>{});
+    }
+    return response;
+   }catch(error){
+    const cached=await caches.match(event.request);
+    return cached||caches.match('./index.html');
+   }
+  })());
+  return;
+ }
+ event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{
+  if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
+  return response;
+ }).catch(()=>caches.match('./index.html'))));
+});
