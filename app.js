@@ -22,10 +22,10 @@ function repairPrinceEmpangKualaLocalData(){
  const set=(key,value)=>{if(prince[key]!==value){prince[key]=value;changed=true;}};
  set('hair','Rambut hitam sebahu. Penutup kepala songket tradisional Melayu berwarna marun/merah tua dengan motif emas sesuai Master Character Sheet Revisi 02.');
  set('body',prince.body||'Postur laki-laki Melayu dewasa yang tegap, gagah, dan berwibawa.');
- set('costume','Busana kebesaran kerajaan Melayu berwarna marun atau merah tua dengan sulaman benang emas, sesuai Master Character Sheet Revisi 02. Busana hijau atau hitam kehijauan bukan kostum resmi.');
- set('accessories','Penutup kepala songket tradisional Melayu berwarna marun/merah tua bermotif emas dan aksesori kerajaan bernuansa emas sesuai Master Character Sheet Revisi 02. Jangan mengganti dengan destar hitam atau ornamen batu hijau.');
+ set('costume','Busana kebesaran kerajaan Melayu berwarna marun atau merah tua dengan sulaman benang emas, sesuai Master Character Sheet Revisi 02.');
+ set('accessories','Penutup kepala songket tradisional Melayu berwarna marun/merah tua bermotif emas dan aksesori kerajaan bernuansa emas sesuai Master Character Sheet Revisi 02.');
  set('visual','Pangeran Melayu dewasa dengan wajah mengikuti referensi resmi, rambut hitam sebahu, kumis tipis dan janggut tipis, mengenakan busana kerajaan marun/merah tua bersulam emas serta penutup kepala songket marun bermotif emas.');
- set('rules','MASTER CHARACTER SHEET REVISI 02 adalah acuan tertinggi. Pertahankan wajah dan identitas persis sesuai referensi resmi; jangan mengubah bentuk wajah. Rambut hitam sebahu, kumis tipis dan janggut tipis. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Dilarang menggunakan busana atau penutup kepala hijau, hitam kehijauan, atau destar hitam. Berlaku pada seluruh klip dan hasil render.');
+ set('rules','MASTER CHARACTER SHEET REVISI 02 adalah acuan tertinggi. Pertahankan wajah dan identitas persis sesuai referensi resmi; jangan mengubah bentuk wajah. Rambut hitam sebahu, kumis tipis dan janggut tipis. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Busana dan penutup kepala wajib mengikuti warna, motif, dan bentuk pada referensi resmi. Berlaku pada seluruh klip dan hasil render.');
  if(changed)details.push('Metadata kostum dan kontinuitas Pangeran Empang Kuala diselaraskan; foto referensi dan kolom wajah tidak disentuh.');
  let clipsChanged=0;
  for(const c of p.clips||[]){
