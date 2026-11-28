@@ -34,7 +34,9 @@ function repairPrinceEmpangKualaLocalData(){
   if(!selected&&!mentions)continue;
   const raw=String(c.visual||'');
   const pieces=raw.split(/(?<=[.!?])\\s+/);
-  const kept=pieces.filter(sentence=>!(/busana|pakaian|kostum|jubah|destar|penutup kepala|ikat kepala/i.test(sentence)&&/hijau|green|emerald|olive|hitam kehijauan|dark green/i.test(sentence)));
+  const kept=pieces.map(sentence=>sentence
+   .replace(/\\b(busana|pakaian|kostum|jubah)\\b[^,;.!?]{0,100}\\b(hijau|green|emerald|olive|hitam kehijauan|dark green)\\b[^,;.!?]*/gi,'busana kerajaan marun/merah tua bersulam emas')
+   .replace(/\\b(destar|penutup kepala|ikat kepala)\\b[^,;.!?]{0,100}\\b(hijau|green|emerald|olive|hitam kehijauan|dark green|hitam|black)\\b[^,;.!?]*/gi,'penutup kepala songket marun bermotif emas'));
   let next=kept.join(' ').trim();
   const lock='KONTINUITAS WAJIB PANGERAN EMPANG KUALA: wajah mengikuti referensi resmi; rambut hitam sebahu, kumis dan janggut tipis; busana kerajaan marun/merah tua bersulam emas; penutup kepala songket marun bermotif emas. Dilarang menggunakan kostum hijau atau destar hitam.';
   if(!next.includes('KONTINUITAS WAJIB PANGERAN EMPANG KUALA'))next=(next?next+' ':'')+lock;
