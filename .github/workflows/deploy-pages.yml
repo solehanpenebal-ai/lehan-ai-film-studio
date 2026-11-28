@@ -24,6 +24,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate application JavaScript
         run: node --check app.js
+      - name: Validate Cloudflare Worker JavaScript
+        run: node --input-type=module --check < worker/src/index.js
       - name: Validate PWA manifest
         run: python -m json.tool manifest.webmanifest > /dev/null
       - name: Configure Pages
