@@ -185,7 +185,10 @@ function promptQualityAudit(c,p){
  selected.filter(x=>!isNarrator(x)).forEach(x=>{const missing=[];if(!x.face)missing.push('ciri wajah');if(!x.costume)missing.push('busana');if(!(x.referenceFront||x.referenceImage))missing.push('referensi depan');if(missing.length)issues.push({level:'warning',title:'Referensi '+x.name+' belum lengkap',detail:'Belum tersedia: '+missing.join(', ')+'. Referensi samping dan seluruh tubuh bersifat opsional.'});});
  const textToCheck=[c.visual,c.lighting,c.shot,c.motion].filter(Boolean).join(' ').toLowerCase();
  const has=(re)=>re.test(textToCheck);
- const prince=selected.find(x=>String(x.name||'').toLowerCase().includes('pangeran empang kuala')||String(x.voice||'').toLowerCase()==='alnilam');\n const princeText=prince?[prince.costume,prince.hair,prince.accessories,prince.visual,prince.rules].filter(Boolean).join(' ').toLowerCase():'';\n if(prince&&has(/hijau|green|emerald|olive|dark green/)&&!has(/marun|merah tua|burgundy|maroon/))issues.push({level:'danger',title:'Konflik kostum Pangeran Empang Kuala pada deskripsi klip',detail:'Deskripsi adegan menyebut hijau tanpa marun. Acuan resmi menetapkan marun/merah tua bersulam emas. Koreksi deskripsi klip sebelum render.'});\n if(prince&&/hijau|green|emerald|olive|dark green|hitam kehijauan/.test(princeText))issues.push({level:'danger',title:'Metadata karakter Pangeran bertentangan dengan Master Character Sheet',detail:'Profil karakter tersimpan masih memuat warna hijau/gelap atau penutup kepala yang tidak sesuai. Prompt kini memprioritaskan kostum marun dan songket emas dari acuan resmi, tetapi metadata perlu diperbaiki.'});
+ const prince=selected.find(x=>String(x.name||'').toLowerCase().includes('pangeran empang kuala')||String(x.voice||'').toLowerCase()==='alnilam');
+ const princeText=prince?[prince.costume,prince.hair,prince.accessories,prince.visual,prince.rules].filter(Boolean).join(' ').toLowerCase():'';
+ if(prince&&has(/hijau|green|emerald|olive|dark green/)&&!has(/marun|merah tua|burgundy|maroon/))issues.push({level:'danger',title:'Konflik kostum Pangeran Empang Kuala pada deskripsi klip',detail:'Deskripsi adegan menyebut hijau tanpa marun. Acuan resmi menetapkan marun/merah tua bersulam emas. Koreksi deskripsi klip sebelum render.'});
+ if(prince&&/hijau|green|emerald|olive|dark green|hitam kehijauan/.test(princeText))issues.push({level:'danger',title:'Metadata karakter Pangeran bertentangan dengan Master Character Sheet',detail:'Profil karakter tersimpan masih memuat warna hijau/gelap atau penutup kepala yang tidak sesuai. Prompt kini memprioritaskan kostum marun dan songket emas dari acuan resmi, tetapi metadata perlu diperbaiki.'});
  if(has(/\b(siang|pagi|fajar|matahari|daylight|sunlit)\b/)&&has(/\b(malam|tengah malam|nighttime|moonlit|gelap gulita)\b/))issues.push({level:'warning',title:'Kemungkinan konflik waktu',detail:'Arahan memuat petunjuk siang/pagi sekaligus malam. Pastikan ini memang transisi yang disengaja.'});
  if(has(/\b(dalam ruangan|interior|di dalam|indoor)\b/)&&has(/\b(luar ruangan|eksterior|di luar|outdoor)\b/))issues.push({level:'warning',title:'Kemungkinan konflik lokasi',detail:'Arahan memuat interior sekaligus eksterior. Perjelas apakah adegan berpindah lokasi atau hanya satu ruang.'});
  const rows=issues.length?issues.map(x=>'<div class="audit-row"><span class="audit-level '+x.level+'">'+(x.level==='danger'?'PRIORITAS':'PERIKSA')+'</span><div><b>'+esc(x.title)+'</b><p>'+esc(x.detail)+'</p></div></div>').join(''):'<div class="empty"><strong>Tidak ditemukan konflik dasar.</strong> Tetap tinjau prompt dan hasil render secara manual.</div>';
@@ -214,7 +217,9 @@ function buildPrompt(c,p){
  const b=normalizeBible(p),chars=p.characters||[];
  const selected=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
  const visualChars=selected.filter(x=>!isNarrator(x));
- const characterSection=visualChars.length?visualChars.map(x=>{\n  const prince=String(x.name||'').toLowerCase().includes('pangeran empang kuala')||String(x.voice||'').toLowerCase()==='alnilam';\n  return [
+ const characterSection=visualChars.length?visualChars.map(x=>{
+  const prince=String(x.name||'').toLowerCase().includes('pangeran empang kuala')||String(x.voice||'').toLowerCase()==='alnilam';
+  return [
   'ON-SCREEN CHARACTER — '+x.name,
   'Identity / role: '+(x.identity||'Use the approved Master Character Sheet.'),
   'Face identity: '+(x.face||'Preserve the approved face reference exactly; do not redesign.'),
@@ -226,8 +231,13 @@ function buildPrompt(c,p){
   'Continuity rules: '+(prince?'Master Character Sheet Revisi 02 adalah acuan tertinggi. Wajah tidak berubah. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Dilarang mengganti busana atau penutup kepala menjadi hijau atau hitam. Berlaku pada seluruh klip dan render.':(x.rules||'Preserve the approved character reference without alteration.')),
   ...(prince?['MANDATORY OFFICIAL COSTUME LOCK: DEEP MAROON / BURGUNDY ONLY WITH GOLD EMBROIDERY. MAROON-AND-GOLD SONGKET HEADWEAR ONLY. GREEN, BLACK-GREEN, OR DARK GREEN COSTUME/HEADWEAR IS STRICTLY PROHIBITED. Override conflicting legacy character metadata.']:[]),
   'Identity priority: approved reference images and Master Character Sheet override ambiguous text.'
- ].join('\n');\n }).join('\n\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
- const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. References are not uploaded automatically.';}).join('\n'):'No on-screen character reference attachment is selected for this clip.';
+ ].join('
+');
+ }).join('
+
+'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
+ const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. References are not uploaded automatically.';}).join('
+'):'No on-screen character reference attachment is selected for this clip.';
  return [
  'PROMPT ENGINE 2.1 — VISUAL-ONLY GENERATION BRIEF',
  'PROJECT: '+p.name,
@@ -259,7 +269,8 @@ function buildPrompt(c,p){
  'Preserve the exact approved face identity, facial proportions, age appearance, hairstyle, costume, accessories, body proportions, and character identity. No face morphing, beautification redesign, costume/color substitutions, missing or added accessories, duplicate people, extra characters, unintended crowd, scene/time/weather changes, flicker, warped anatomy, text, subtitles, logos, or watermarks. Preserve established environment, lighting logic, and color grade across adjacent clips.',
  '', 'I. SOURCE DISCIPLINE',
  'Use only facts and actions explicitly present in this scene and approved project canon. If a detail is missing, keep it neutral or omit it. Do not invent plot, props, locations, character relationships, or camera-visible actions. A prompt is an instruction only; it does not mean a render has already been generated.'
- ].join('\n');
+ ].join('
+');
 }
 function buildAudioPrompt(c,p){
  const chars=p.characters||[],b=normalizeBible(p);
