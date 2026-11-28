@@ -320,7 +320,7 @@ function buildAudioPrompt(c,p){
  const dialogue=(c.dialogue||'').trim()||'Tidak ada dialog. Jangan menciptakan kalimat, gumaman, tawa, atau lip-sync.';
  const ambience=(c.ambience||'').trim()||'Tidak ada ambience spesifik yang ditetapkan pada data klip. Jangan mengarang ambience lokasi.';
  const sfx=(c.sfxCues||c.sfx||'').trim()||'Tidak ada cue SFX spesifik. Jangan menambahkan bunyi aksi yang tidak terlihat atau tidak disebutkan.';
- const music=(c.bgm||c.music||'').trim()||'Tidak ada musik spesifik yang ditetapkan. Tambahkan musik hanya jika diarahkan Master Storyline atau keputusan penyuntingan yang disetujui.';
+ const music=(c.bgm||c.music||'').trim()||'Gunakan tema musik utama orisinal PT7-ROYAL-MAIN-THEME sebagai BGM dasar klip ini. Pertahankan identitas melodi, tempo, pusat tonal, warna instrumen, dan karakter aransemen yang sama dengan klip sebelumnya; lanjutkan frasa musik secara alami, jangan memulai lagu baru. Sesuaikan dinamika dengan emosi adegan. Jangan menambahkan tema alternatif yang tidak disetujui.';
  const foley=(c.foley||'').trim()||'Gunakan hanya jika didukung aksi visual: langkah kaki sesuai permukaan, gerak kain/perhiasan, kontak, atau penanganan benda.';
  const mix=(c.mix||'').trim()||'Jaga dialog tetap jelas; ambience berada di belakang aksi; sinkronkan SFX dengan gambar; pertahankan perspektif jarak, dinamika, dan headroom.';
  const transition=(c.transition||'').trim()||'Akhiri secara alami. Gunakan audio bridge ke klip berikutnya hanya jika kesinambungan membutuhkannya.';
@@ -345,7 +345,7 @@ function buildAudioPrompt(c,p){
  '', '6. MIXING / SPATIAL PERSPECTIVE',mix,
  '', '7. TRANSITION / AUDIO BRIDGE',transition,
  '', '8. MUSIC CONTINUITY LOCK',
- 'Use one consistent original score identity across all clips and all Google Flow accounts: PT7-ROYAL-MAIN-THEME. Preserve the same musical character, motif, tempo, tonal center, instrumentation, and production palette from adjacent clips. Continue the musical phrase naturally rather than restarting a new unrelated composition. Let dynamics change only to serve the scene. Exact waveform continuity cannot be guaranteed by separately rendered clips; the editor may lay one continuous master music track under the sequence if needed.',
+ 'MANDATORY GLOBAL BGM: PT7-ROYAL-MAIN-THEME is the approved original main theme and MUST be present in every clip unless the approved storyboard explicitly calls for silence. This global music direction applies even when the clip has no clip-specific BGM field. Preserve the same musical motif, tempo, tonal center, instrumentation, and production palette across all clips and all Google Flow accounts. Continue the phrase naturally; do not restart an unrelated composition. Change only dynamics and restrained orchestration to serve the scene. Separate renders cannot guarantee waveform-identical continuity; the editor may use one continuous master music track under the sequence if needed.',
  '', '9. CAPCUT POST-PRODUCTION',
  'Add only narrator Charon separately in CapCut. Retain Google Flow character dialogue and scene effects. If generated BGM changes noticeably between independently rendered clips, use the approved continuous master score as the unifying music bed and lower or mute inconsistent generated BGM. Align all tracks to visible action and preserve dialogue clarity.',
  '', 'PRODUCTION SAFETY',
