@@ -9,6 +9,46 @@ const $=s=>document.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,10);
 const starter={projects:[{id:'putri-tujuh',workspaceType:'lpp',generationMode:'hybrid',name:'PUTRI TUJUH',description:'Legenda dari Dumai, Riau — proyek uji produksi LPP.',genre:'Legenda Melayu · Cinematic',createdAt:new Date().toISOString(),characters:[{id:'ratu',name:'Ratu Cik Sima',visual:'Perempuan dewasa; sanggul hitam; mahkota tinggi berhias emas; busana kerajaan marun bermotif emas.',voice:'Gacrux',rules:'Wajah, mahkota, sanggul, warna busana marun dan motif emas harus konsisten.'},{id:'pangeran',name:'Pangeran Empang Kuala',visual:'Busana hijau bersulam; ikat kepala songket; rambut hitam sebahu; kumis dan janggut tipis.',voice:'Alnilam',rules:'Pertahankan wajah, busana hijau, ikat kepala songket, dan rambut sebahu.'},{id:'narator',name:'Narator',visual:'Tidak tampil di layar kecuali ditentukan storyboard.',voice:'Charon',rules:'Suara pria dewasa, rendah, tenang, informatif, dan berwibawa.'}],clips:[]}],activeProjectId:'putri-tujuh'};
 let state=load();let editingProject=null,editingCharacter=null,editingClip=null,editingEpisodeId=null,activeView='dashboard',pendingCharacterImage='';
+
+/* Safe, one-time-style local migration: align Prince Empang Kuala metadata and
+   only conflicting visual descriptions. Storyline, faces, references and other
+   characters are intentionally untouched. */
+function repairPrinceEmpangKualaLocalData(){
+ const p=state.projects.find(x=>x.id===state.activeProjectId)||state.projects.find(x=>/putri tujuh/i.test(x.name||''));
+ if(!p||!/putri tujuh/i.test(p.name||''))return {changed:false,details:[]};
+ const prince=p.characters.find(x=>/pangeran empang kuala/i.test(x.name||'')||String(x.voice||'').toLowerCase()==='alnilam');
+ if(!prince)return {changed:false,details:['Karakter Pangeran Empang Kuala tidak ditemukan; tidak ada perubahan.']};
+ let changed=false;const details=[];
+ const set=(key,value)=>{if(prince[key]!==value){prince[key]=value;changed=true;}};
+ set('hair','Rambut hitam sebahu. Penutup kepala songket tradisional Melayu berwarna marun/merah tua dengan motif emas sesuai Master Character Sheet Revisi 02.');
+ set('body',prince.body||'Postur laki-laki Melayu dewasa yang tegap, gagah, dan berwibawa.');
+ set('costume','Busana kebesaran kerajaan Melayu berwarna marun atau merah tua dengan sulaman benang emas, sesuai Master Character Sheet Revisi 02. Busana hijau atau hitam kehijauan bukan kostum resmi.');
+ set('accessories','Penutup kepala songket tradisional Melayu berwarna marun/merah tua bermotif emas dan aksesori kerajaan bernuansa emas sesuai Master Character Sheet Revisi 02. Jangan mengganti dengan destar hitam atau ornamen batu hijau.');
+ set('visual','Pangeran Melayu dewasa dengan wajah mengikuti referensi resmi, rambut hitam sebahu, kumis tipis dan janggut tipis, mengenakan busana kerajaan marun/merah tua bersulam emas serta penutup kepala songket marun bermotif emas.');
+ set('rules','MASTER CHARACTER SHEET REVISI 02 adalah acuan tertinggi. Pertahankan wajah dan identitas persis sesuai referensi resmi; jangan mengubah bentuk wajah. Rambut hitam sebahu, kumis tipis dan janggut tipis. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Dilarang menggunakan busana atau penutup kepala hijau, hitam kehijauan, atau destar hitam. Berlaku pada seluruh klip dan hasil render.');
+ if(changed)details.push('Metadata kostum dan kontinuitas Pangeran Empang Kuala diselaraskan; foto referensi dan kolom wajah tidak disentuh.');
+ let clipsChanged=0;
+ for(const c of p.clips||[]){
+  const selected=(c.characterIds||[]).includes(prince.id);
+  const mentions=/pangeran empang kuala/i.test([c.title,c.visual].filter(Boolean).join(' '));
+  if(!selected&&!mentions)continue;
+  const raw=String(c.visual||'');
+  const pieces=raw.split(/(?<=[.!?])\\s+/);
+  const kept=pieces.filter(sentence=>!(/busana|pakaian|kostum|jubah|destar|penutup kepala|ikat kepala/i.test(sentence)&&/hijau|green|emerald|olive|hitam kehijauan|dark green/i.test(sentence)));
+  let next=kept.join(' ').trim();
+  const lock='KONTINUITAS WAJIB PANGERAN EMPANG KUALA: wajah mengikuti referensi resmi; rambut hitam sebahu, kumis dan janggut tipis; busana kerajaan marun/merah tua bersulam emas; penutup kepala songket marun bermotif emas. Dilarang menggunakan kostum hijau atau destar hitam.';
+  if(!next.includes('KONTINUITAS WAJIB PANGERAN EMPANG KUALA'))next=(next?next+' ':'')+lock;
+  if(c.number===14&&(c.episodeNumber||1)===1){
+   const story='Adegan: Pangeran Empang Kuala melintas di kawasan sekitar Lubuk Sarang Umai bersama para pengiringnya. Rombongan melakukan perjalanan melewati jalur di sekitar kawasan perairan.';
+   if(!next.includes('Rombongan melakukan perjalanan melewati jalur'))next=(next?next+' ':'')+story;
+  }
+  if(next!==raw){c.visual=next;clipsChanged++;changed=true;}
+ }
+ if(clipsChanged)details.push(clipsChanged+' deskripsi visual klip yang menampilkan/menyebut Pangeran diperiksa dan dikoreksi bila memuat kostum hijau; adegan inti Klip 14 dipertahankan.');
+ if(changed&&!save())return {changed:false,details:['Penyimpanan lokal gagal; perubahan tidak dapat dipastikan tersimpan. Jangan tutup halaman, ekspor backup terlebih dahulu.']};
+ return {changed,details};
+}
+const princeLocalRepair=repairPrinceEmpangKualaLocalData();
 function load(){try{const data=JSON.parse(localStorage.getItem(KEY))||structuredClone(starter);data.projects=(data.projects||[]).map(p=>({...p,workspaceType:p.workspaceType||(/putri tujuh/i.test(p.name||'')?'lpp':'creator'),generationMode:p.generationMode||'hybrid',masterBible:{setting:'',visualStyle:'',languageRules:'',continuity:'',...(p.masterBible||{})},characters:p.characters||[],clips:(p.clips||[]).map(c=>({...c,characterIds:c.characterIds||[],voiceCharacterIds:c.voiceCharacterIds||[]}))}));return data}catch{return structuredClone(starter)}}
 function save(nextState=state){try{localStorage.setItem(KEY,JSON.stringify(nextState));return true}catch(err){toast('Penyimpanan perangkat penuh atau tidak tersedia. Data aktif tidak diganti. Unduh backup dan kurangi ukuran gambar referensi bila perlu.');return false}}
 function project(){const p=state.projects.find(p=>p.id===state.activeProjectId)||state.projects[0];if(p)normalizeBible(p);return p}
@@ -379,4 +419,5 @@ document.addEventListener('click',function(event){
 },true);
 
 render();
+if(princeLocalRepair.changed)toast('Koreksi kontinuitas Pangeran Empang Kuala tersimpan di proyek lokal.');
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
