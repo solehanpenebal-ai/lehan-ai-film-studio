@@ -117,7 +117,9 @@ export default {
       const match = authorization.match(/^Bearer\s+(.+)$/i);
       if (!match) return json({ error: "Authentication required" }, 401);
       await verifyFirebaseIdToken(match[1], env);
-      if (!env.OPENAI_API_KEY) return json({ error: "AI provider is not configured" }, 503);
+      if (!env.OPENAI_API_KEY || !String(env.OPENAI_MODEL || "").trim()) {
+        return json({ error: "AI provider is not configured. Set OPENAI_API_KEY and OPENAI_MODEL in Worker settings." }, 503);
+      }
 
       const raw = await request.text();
       if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return json({ error: "Request too large" }, 413);
@@ -145,7 +147,7 @@ export default {
           "content-type": "application/json"
         },
         body: JSON.stringify({
-          model: env.OPENAI_MODEL || "gpt-6.2-astra",
+          model: String(env.OPENAI_MODEL).trim(),
           store: false,
           max_output_tokens: MAX_OUTPUT_TOKENS,
           instructions,
@@ -158,7 +160,7 @@ export default {
       }
       const reply = extractOutputText(result);
       if (!reply) return json({ error: "The model returned no text. Please retry." }, 502);
-      return json({ reply, model: env.OPENAI_MODEL || "gpt-6.2-astra", responseId: result.id || null }, 200);
+      return json({ reply, model: String(env.OPENAI_MODEL).trim(), responseId: result.id || null }, 200);
     } catch (error) {
       const message = error?.message || "Unexpected server error";
       const status = message.includes("Firebase authentication failed") || message.includes("Firebase token") || message.includes("signing key") ? 401 : 503;
