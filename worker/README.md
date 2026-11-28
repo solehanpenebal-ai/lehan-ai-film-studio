@@ -68,3 +68,65 @@ Body:
 - API usage is billed separately from a ChatGPT subscription.
 - Do not deploy an unauthenticated endpoint or expose the OpenAI key.
 - Google Flow rendering and CapCut editing remain separate workflows.
+
+## Dashboard setup guide (Android / no computer)
+
+This route uses the Cloudflare web dashboard and does not require a terminal.
+
+### A. Create the Worker shell
+
+1. Open the Cloudflare dashboard in a browser and sign in.
+2. Open **Workers & Pages** and choose **Create application** / **Create Worker** (the exact label may vary).
+3. Create a Worker named `lehan-ai-film-studio-ai`.
+4. Open its code editor (**Edit code**).
+5. Replace the starter code with the complete contents of this repository file: `worker/src/index.js`.
+6. Save and deploy the code. Do not share the editor with anyone and do not paste secrets into the source code.
+
+### B. Add runtime variables and the API secret
+
+Open the Worker → **Settings** → **Variables and Secrets** → **Add**.
+
+Add these as **Text** variables:
+
+| Name | Value |
+|---|---|
+| `FIREBASE_PROJECT_ID` | Exact Project ID shown in Firebase Project settings |
+| `FIREBASE_ALLOWED_EMAIL` | The one email address you verified in Firebase |
+| `OPENAI_MODEL` | Exact model ID enabled for your OpenAI API project |
+
+Add this separately as type **Secret**:
+
+| Name | Value |
+|---|---|
+| `OPENAI_API_KEY` | Your OpenAI API key |
+
+After adding them, select **Deploy**. Never send the API key to ChatGPT, put it in the Firebase web config, or save it in GitHub.
+
+### C. Configure Firebase
+
+1. Open Firebase Console and create/select the project.
+2. In **Authentication → Sign-in method**, enable **Email/Password**.
+3. In **Authentication → Settings → Authorized domains**, ensure `solehanpenebal-ai.github.io` is present. Add it if absent.
+4. Create the one account whose email exactly matches `FIREBASE_ALLOWED_EMAIL`.
+5. Verify that email using the message Firebase sends.
+6. In **Project settings → General → Your apps**, register a Web app if one does not exist. Copy its Firebase web config into the Lehan AI Film Studio Firebase configuration panel. This web config is distinct from the OpenAI API key.
+
+### D. Connect the app
+
+1. Open the deployed Lehan AI Film Studio site.
+2. Open **Astra AI Companion**.
+3. Save the Firebase Web App config.
+4. Enter the Worker URL shown by Cloudflare, normally `https://lehan-ai-film-studio-ai.<your-account-subdomain>.workers.dev`.
+5. Sign in with the verified, allowed email.
+6. Send a short test message. A successful answer should show the configured model name.
+
+### E. Verify access before normal use
+
+- A request without a Firebase token must return HTTP 401.
+- A different email or unverified email must return HTTP 401.
+- The correct verified email should pass authentication.
+- If it returns HTTP 503, check Worker variables/secrets and deployment.
+- If the browser reports a network/CORS error, confirm the Worker URL and the GitHub Pages origin.
+
+**Important deployment gate:** Do not enable broad public access or announce the AI feature as live until the authentication tests pass and Cloudflare rate limiting plus OpenAI project spending limits have been configured. The current Worker restricts access to one verified email, but this is not a substitute for rate and spending controls.
+
