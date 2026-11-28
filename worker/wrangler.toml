@@ -2,5 +2,3 @@ name = "lehan-ai-film-studio-ai"
 main = "src/index.js"
 compatibility_date = "2026-11-27"
 
-[vars]
-OPENAI_MODEL = "gpt-6.2-astra"
