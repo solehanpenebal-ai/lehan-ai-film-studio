@@ -1,4 +1,4 @@
-const CACHE='lpp-film-studio-v33';
+const CACHE='lpp-film-studio-v34';
 const FILES=['./','./index.html','./styles.css','./app.js','./backup-guard.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{
