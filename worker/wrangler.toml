@@ -1,6 +1,7 @@
 name = "lehan-ai-film-studio-ai"
 main = "src/index.js"
 compatibility_date = "2026-11-27"
+keep_vars = true
 
 [[ratelimits]]
 name = "ASTRA_AI_RATE_LIMITER"
