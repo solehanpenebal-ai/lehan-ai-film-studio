@@ -25,28 +25,25 @@ function repairPrinceEmpangKualaLocalData(){
  set('costume','Busana kebesaran kerajaan Melayu berwarna marun atau merah tua dengan sulaman benang emas, sesuai Master Character Sheet Revisi 02.');
  set('accessories','Penutup kepala songket tradisional Melayu berwarna marun/merah tua bermotif emas dan aksesori kerajaan bernuansa emas sesuai Master Character Sheet Revisi 02.');
  set('visual','Pangeran Melayu dewasa dengan wajah mengikuti referensi resmi, rambut hitam sebahu, kumis tipis dan janggut tipis, mengenakan busana kerajaan marun/merah tua bersulam emas serta penutup kepala songket marun bermotif emas.');
- set('rules','MASTER CHARACTER SHEET REVISI 02 adalah acuan tertinggi. Pertahankan wajah dan identitas persis sesuai referensi resmi; jangan mengubah bentuk wajah. Rambut hitam sebahu, kumis tipis dan janggut tipis. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Busana dan penutup kepala wajib mengikuti warna, motif, dan bentuk pada referensi resmi. Berlaku pada seluruh klip dan hasil render.');
+ set('rules','MASTER CHARACTER SHEET REVISI 02 adalah acuan tertinggi. Pertahankan wajah dan identitas persis sesuai referensi resmi; jangan mengubah bentuk wajah. Rambut hitam sebahu, kumis tipis dan janggut tipis. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Berlaku pada seluruh klip dan hasil render.');
  if(changed)details.push('Metadata kostum dan kontinuitas Pangeran Empang Kuala diselaraskan; foto referensi dan kolom wajah tidak disentuh.');
  let clipsChanged=0;
  for(const c of p.clips||[]){
-  const selected=(c.characterIds||[]).includes(prince.id);
-  const mentions=/pangeran empang kuala/i.test([c.title,c.visual].filter(Boolean).join(' '));
+  const selected=Array.isArray(c.characterIds)&&c.characterIds.includes(prince.id);
+  const mentions=/pangeran empang kuala/i.test([c.title,c.visual,c.description].filter(Boolean).join(' '));
   if(!selected&&!mentions)continue;
   const raw=String(c.visual||'');
-  const pieces=raw.split(/(?<=[.!?])\\s+/);
-  const kept=pieces.map(sentence=>sentence
-   .replace(/\\b(busana|pakaian|kostum|jubah)\\b[^,;.!?]{0,100}\\b(hijau|green|emerald|olive|hitam kehijauan|dark green)\\b[^,;.!?]*/gi,'busana kerajaan marun/merah tua bersulam emas')
-   .replace(/\\b(destar|penutup kepala|ikat kepala)\\b[^,;.!?]{0,100}\\b(hijau|green|emerald|olive|hitam kehijauan|dark green|hitam|black)\\b[^,;.!?]*/gi,'penutup kepala songket marun bermotif emas'));
-  let next=kept.join(' ').trim();
-  const lock='KONTINUITAS WAJIB PANGERAN EMPANG KUALA: wajah mengikuti referensi resmi; rambut hitam sebahu, kumis dan janggut tipis; busana kerajaan marun/merah tua bersulam emas; penutup kepala songket marun bermotif emas. Dilarang menggunakan kostum hijau atau destar hitam.';
-  if(!next.includes('KONTINUITAS WAJIB PANGERAN EMPANG KUALA'))next=(next?next+' ':'')+lock;
-  if(c.number===14&&(c.episodeNumber||1)===1){
-   const story='Adegan: Pangeran Empang Kuala melintas di kawasan sekitar Lubuk Sarang Umai bersama para pengiringnya. Rombongan melakukan perjalanan melewati jalur di sekitar kawasan perairan.';
-   if(!next.includes('Rombongan melakukan perjalanan melewati jalur'))next=(next?next+' ':'')+story;
+  let next=raw
+   .replace(/\b(busana|pakaian|kostum|jubah)\b[^,;.!?\n]{0,140}\b(hijau|green|emerald|olive|hitam kehijauan|dark green)\b[^,;.!?\n]*/gi,'busana kerajaan marun/merah tua bersulam emas')
+   .replace(/\b(destar|penutup kepala|ikat kepala)\b[^,;.!?\n]{0,140}\b(hijau|green|emerald|olive|hitam kehijauan|dark green|hitam|black)\b[^,;.!?\n]*/gi,'penutup kepala songket marun bermotif emas');
+  const lock='KONTINUITAS WAJIB PANGERAN EMPANG KUALA: wajah mengikuti referensi resmi; rambut hitam sebahu, kumis dan janggut tipis; busana kerajaan marun/merah tua bersulam emas; penutup kepala songket marun bermotif emas.';
+  if(!next.includes('KONTINUITAS WAJIB PANGERAN EMPANG KUALA'))next=(next?next.trim()+' ':'')+lock;
+  if(Number(c.number)===14&&Number(c.episodeNumber||1)===1&&!/melintas di kawasan sekitar lubuk sarang umai/i.test(next)){
+   next+=' Adegan sesuai Master Storyline: Pangeran Empang Kuala melintas di kawasan sekitar Lubuk Sarang Umai bersama para pengiringnya dalam perjalanan melewati jalur di sekitar kawasan perairan.';
   }
   if(next!==raw){c.visual=next;clipsChanged++;changed=true;}
  }
- if(clipsChanged)details.push(clipsChanged+' deskripsi visual klip yang menampilkan/menyebut Pangeran diperiksa dan dikoreksi bila memuat kostum hijau; adegan inti Klip 14 dipertahankan.');
+ if(clipsChanged)details.push(clipsChanged+' deskripsi visual klip yang menampilkan atau menyebut Pangeran diperiksa; hanya frasa kostum yang bertentangan dikoreksi dan instruksi kontinuitas ditambahkan.');
  if(changed&&!save())return {changed:false,details:['Penyimpanan lokal gagal; perubahan tidak dapat dipastikan tersimpan. Jangan tutup halaman, ekspor backup terlebih dahulu.']};
  return {changed,details};
 }
