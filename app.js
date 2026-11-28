@@ -264,10 +264,10 @@ function buildPrompt(c,p){
   'Face identity: '+(x.face||'Preserve the approved face reference exactly; do not redesign.'),
   'Hair / headwear: '+(prince?'Rambut hitam sebahu; penutup kepala songket tradisional Melayu marun/merah tua bermotif emas sesuai Master Character Sheet Revisi 02.':(x.hair||'Preserve the approved reference.')),
   'Body / posture: '+(x.body||'Preserve the approved proportions and posture.'),
-  'Costume: '+(prince?'Busana kerajaan Melayu marun/merah tua dengan sulaman emas sesuai Master Character Sheet Revisi 02. Warna hijau, hitam kehijauan, atau warna lain dilarang.':(x.costume||'Preserve the approved costume; no substitutions.')),
-  'Accessories: '+(prince?'Penutup kepala songket marun bermotif emas dan aksesori kerajaan emas sesuai referensi resmi; jangan gunakan destar hitam atau ornamen batu hijau sebagai pengganti.':(x.accessories||'Preserve approved accessories.')),
+  'Costume: '+(prince?'Busana kerajaan Melayu berwarna marun/merah tua dengan sulaman benang emas, mengikuti warna, motif, dan potongan pada Master Character Sheet Revisi 02.':(x.costume||'Preserve the approved costume; no substitutions.')),
+  'Accessories: '+(prince?'Penutup kepala songket tradisional Melayu berwarna marun/merah tua bermotif emas, dilengkapi aksesori kerajaan sesuai referensi resmi.':(x.accessories||'Preserve approved accessories.')),
   'Visual description: '+(prince?'Pangeran Melayu dewasa dengan wajah sesuai referensi resmi, rambut hitam sebahu, kumis dan janggut tipis, busana marun bersulam emas, serta penutup kepala songket marun dan emas.':(x.visual||'No additional visual description supplied.')),
-  'Continuity rules: '+(prince?'Master Character Sheet Revisi 02 adalah acuan tertinggi. Wajah tidak berubah. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Dilarang mengganti busana atau penutup kepala menjadi hijau atau hitam. Berlaku pada seluruh klip dan render.':(x.rules||'Preserve the approved character reference without alteration.')),
+  'Continuity rules: '+(prince?'Master Character Sheet Revisi 02 adalah acuan tertinggi. Wajah tidak berubah. Busana dan penutup kepala wajib mengikuti warna, motif, dan bentuk pada Master Character Sheet Revisi 02. Berlaku pada seluruh klip dan render.':(x.rules||'Preserve the approved character reference without alteration.')),
   ...(prince?['MANDATORY OFFICIAL COSTUME LOCK: DEEP MAROON / BURGUNDY ONLY WITH GOLD EMBROIDERY. MAROON-AND-GOLD SONGKET HEADWEAR ONLY. GREEN, BLACK-GREEN, OR DARK GREEN COSTUME/HEADWEAR IS STRICTLY PROHIBITED. Override conflicting legacy character metadata.']:[]),
   'Identity priority: approved reference images and Master Character Sheet override ambiguous text.'
  ].join('\n');
