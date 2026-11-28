@@ -131,9 +131,10 @@ function storyStudio(p){
   const key=(c.episodeNumber||1)+'-'+c.number;
   if(keys.has(key))issues.push({level:'danger',title:'Nomor klip ganda',detail:'Episode '+(c.episodeNumber||1)+' memiliki lebih dari satu klip bernomor '+c.number+'.'});
   else keys.set(key,c.id);
-  const selected=(c.characterIds||[]).filter(id=>chars.some(x=>x.id===id));
+  const selected=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
   const visual=String(c.visual||'');
   if(!visual.trim())issues.push({level:'warning',title:'Deskripsi visual kosong',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' — '+(c.title||'Tanpa judul')});
+  if(selected.some(isNarrator))issues.push({level:'warning',title:'Narator terpilih sebagai karakter visual',detail:'Master Bible menetapkan narator sebagai suara, bukan tokoh layar. Hapus Narator dari daftar karakter yang tampil; pertahankan hanya pada voice mapping.'});
   (c.characterIds||[]).filter(id=>!chars.some(x=>x.id===id)).forEach(()=>issues.push({level:'danger',title:'Referensi karakter terputus',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' memuat ID karakter yang tidak ditemukan.'}));
   if(!selected.length){
    const named=chars.filter(ch=>!(/^narator$/i.test(String(ch.name||'').trim())||/charon/i.test(String(ch.voice||'')))&&ch.name&&visual.toLowerCase().includes(String(ch.name).toLowerCase()));
@@ -220,12 +221,15 @@ function promptQualityAudit(c,p){
  const chars=p.characters||[],issues=[],selected=(c.characterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean),voices=(c.voiceCharacterIds||[]).map(id=>chars.find(x=>x.id===id)).filter(Boolean);
  const label='Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' — '+(c.title||'Tanpa judul');
  if((c.dialogue||'').trim()&&!voices.length)issues.push({level:'warning',title:'Dialog belum memiliki voice mapping',detail:'Dialog sudah diisi, tetapi belum ada karakter/suara yang dipilih pada voice mapping.'});
+ const nonNarratorVoices=voices.filter(x=>!isNarrator(x));
+ if(!(c.dialogue||'').trim()&&nonNarratorVoices.length)issues.push({level:'warning',title:'Voice mapping karakter tanpa dialog tertulis',detail:'Voice mapping memuat '+nonNarratorVoices.map(x=>x.name).join(', ')+', tetapi kolom dialog masih kosong. Jika karakter memang harus berbicara, masukkan dialognya; jika tidak, hapus karakter tersebut dari voice mapping.'});
  (c.voiceCharacterIds||[]).filter(id=>!chars.some(x=>x.id===id)).forEach(()=>issues.push({level:'danger',title:'Voice mapping terputus',detail:'Ada ID suara yang tidak lagi cocok dengan Master Character.'}));
  selected.filter(x=>!isNarrator(x)).forEach(x=>{const missing=[];if(!x.face)missing.push('ciri wajah');if(!x.costume)missing.push('busana');if(!(x.referenceFront||x.referenceImage))missing.push('referensi depan');if(missing.length)issues.push({level:'warning',title:'Referensi '+x.name+' belum lengkap',detail:'Belum tersedia: '+missing.join(', ')+'. Referensi samping dan seluruh tubuh bersifat opsional.'});});
  const textToCheck=[c.visual,c.lighting,c.shot,c.motion].filter(Boolean).join(' ').toLowerCase();
  const has=(re)=>re.test(textToCheck);
  const prince=selected.find(x=>String(x.name||'').toLowerCase().includes('pangeran empang kuala')||String(x.voice||'').toLowerCase()==='alnilam');
  const princeText=prince?[prince.costume,prince.hair,prince.accessories,prince.visual,prince.rules].filter(Boolean).join(' ').toLowerCase():'';
+ if(prince&&/dilarang\\s+(?:menggunakan|memakai)[^.!?]{0,100}(?:marun|merah tua|burgundy|maroon)/i.test(String(c.visual||'')))issues.push({level:'danger',title:'Larangan kostum bertentangan dengan acuan Pangeran Empang Kuala',detail:'Deskripsi klip memerintahkan agar busana marun/merah tua tidak digunakan, padahal Master Character Sheet Revisi 02 mewajibkan busana marun/merah tua bersulam emas. Hapus kalimat larangan yang keliru sebelum render.'});
  if(prince&&has(/hijau|green|emerald|olive|dark green/)&&!has(/marun|merah tua|burgundy|maroon/))issues.push({level:'danger',title:'Konflik kostum Pangeran Empang Kuala pada deskripsi klip',detail:'Deskripsi adegan menyebut hijau tanpa marun. Acuan resmi menetapkan marun/merah tua bersulam emas. Koreksi deskripsi klip sebelum render.'});
  if(prince&&/hijau|green|emerald|olive|dark green|hitam kehijauan/.test(princeText))issues.push({level:'danger',title:'Metadata karakter Pangeran bertentangan dengan Master Character Sheet',detail:'Profil karakter tersimpan masih memuat warna hijau/gelap atau penutup kepala yang tidak sesuai. Prompt kini memprioritaskan kostum marun dan songket emas dari acuan resmi, tetapi metadata perlu diperbaiki.'});
  if(has(/\b(siang|pagi|fajar|matahari|daylight|sunlit)\b/)&&has(/\b(malam|tengah malam|nighttime|moonlit|gelap gulita)\b/))issues.push({level:'warning',title:'Kemungkinan konflik waktu',detail:'Arahan memuat petunjuk siang/pagi sekaligus malam. Pastikan ini memang transisi yang disengaja.'});
