@@ -73,27 +73,42 @@ function storyStudio(p){
  const clips=p.clips||[],chars=p.characters||[],issues=[];
  chars.forEach(c=>{
   const missing=[];
+  const voiceOnly=/^narator$/i.test(String(c.name||'').trim())||/charon/i.test(String(c.voice||''));
   if(!c.identity)missing.push('identitas/peran');
-  if(!c.face)missing.push('ciri wajah');
-  if(!c.hair)missing.push('rambut/penutup kepala');
-  if(!c.costume)missing.push('busana');
-  if(!c.accessories)missing.push('aksesori');
   if(!c.rules)missing.push('aturan kontinuitas');
-  if(!(c.referenceFront||c.referenceImage))missing.push('referensi depan');
-  if(!c.referenceSide)missing.push('referensi samping');
-  if(!c.referenceFullBody)missing.push('referensi seluruh tubuh');
+  if(!voiceOnly){
+   if(!c.face)missing.push('ciri wajah');
+   if(!c.hair)missing.push('rambut/penutup kepala');
+   if(!c.body)missing.push('postur/tubuh');
+   if(!c.costume)missing.push('busana');
+   if(!c.accessories)missing.push('aksesori');
+   if(!(c.referenceFront||c.referenceImage))missing.push('referensi depan');
+  }
+  // Referensi samping dan seluruh tubuh bersifat rekomendasi, bukan syarat kelulusan audit.
   if(missing.length)issues.push({level:'warning',title:c.name,detail:'Belum lengkap: '+missing.join(', ')});
  });
  const keys=new Map();
- clips.forEach(c=>{const key=(c.episodeNumber||1)+'-'+c.number;if(keys.has(key))issues.push({level:'danger',title:'Nomor klip ganda',detail:'Episode '+(c.episodeNumber||1)+' memiliki lebih dari satu klip bernomor '+c.number+'.'});else keys.set(key,c.id);
+ clips.forEach(c=>{
+  const key=(c.episodeNumber||1)+'-'+c.number;
+  if(keys.has(key))issues.push({level:'danger',title:'Nomor klip ganda',detail:'Episode '+(c.episodeNumber||1)+' memiliki lebih dari satu klip bernomor '+c.number+'.'});
+  else keys.set(key,c.id);
   const selected=(c.characterIds||[]).filter(id=>chars.some(x=>x.id===id));
-  if(!c.visual)issues.push({level:'warning',title:'Deskripsi visual kosong',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' — '+(c.title||'Tanpa judul')});
+  const visual=String(c.visual||'');
+  if(!visual.trim())issues.push({level:'warning',title:'Deskripsi visual kosong',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' — '+(c.title||'Tanpa judul')});
   (c.characterIds||[]).filter(id=>!chars.some(x=>x.id===id)).forEach(()=>issues.push({level:'danger',title:'Referensi karakter terputus',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' memuat ID karakter yang tidak ditemukan.'}));
-  if(!selected.length&&/tampil|terlihat|berdiri|berjalan|berbicara|menatap/i.test(c.visual||''))issues.push({level:'warning',title:'Periksa karakter layar',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' menyebut aksi/kehadiran tetapi belum memilih karakter tampil.'});
+  if(!selected.length){
+   const named=chars.filter(ch=>!(/^narator$/i.test(String(ch.name||'').trim())||/charon/i.test(String(ch.voice||'')))&&ch.name&&visual.toLowerCase().includes(String(ch.name).toLowerCase()));
+   const groupMention=/ketujuh putri|tujuh putri|ketujuh saudari/i.test(visual);
+   if(named.length||groupMention){
+    const who=named.map(x=>x.name);
+    if(groupMention)who.push('kelompok tujuh putri');
+    issues.push({level:'warning',title:'Periksa karakter layar',detail:'Episode '+(c.episodeNumber||1)+' · Klip '+c.number+' menyebut '+who.join(', ')+', tetapi belum memilih karakter yang tampil.'});
+   }
+  }
  });
  const danger=issues.filter(x=>x.level==='danger').length,warning=issues.filter(x=>x.level==='warning').length;
  const rows=issues.length?issues.map(x=>'<div class="audit-row"><span class="audit-level '+x.level+'">'+(x.level==='danger'?'PERLU DIBENAHI':'PERLU DICEK')+'</span><div><b>'+esc(x.title)+'</b><p>'+esc(x.detail)+'</p></div></div>').join(''):'<div class="empty"><strong>Belum ditemukan masalah pada pemeriksaan dasar.</strong>Ini bukan jaminan bahwa seluruh detail cerita dan visual sudah konsisten. Tetap periksa hasil render secara manual.</div>';
- return '<section class="panel continuity-audit"><div class="section-head" style="margin-top:0"><h3>Continuity Intelligence · Pemeriksaan dasar</h3><small>'+chars.length+' karakter · '+clips.length+' klip diperiksa</small></div><div class="audit-summary"><div><strong>'+danger+'</strong><span>Masalah prioritas</span></div><div><strong>'+warning+'</strong><span>Peringatan</span></div><div><strong>'+issues.length+'</strong><span>Total temuan</span></div></div><p class="small-note">Pemeriksaan otomatis ini memeriksa kelengkapan data dan struktur. Sistem belum dapat memastikan kemiripan wajah antar-gambar atau kontinuitas visual hasil Google Flow.</p><div class="audit-list">'+rows+'</div></section>';
+ return '<section class="panel continuity-audit"><div class="section-head" style="margin-top:0"><h3>Continuity Intelligence · Pemeriksaan dasar</h3><small>'+chars.length+' karakter · '+clips.length+' klip diperiksa</small></div><div class="audit-summary"><div><strong>'+danger+'</strong><span>Masalah prioritas</span></div><div><strong>'+warning+'</strong><span>Peringatan</span></div><div><strong>'+issues.length+'</strong><span>Total temuan</span></div></div><p class="small-note">Audit memeriksa data wajib dan struktur. Referensi samping/seluruh tubuh bersifat opsional; Narator Charon dinilai sebagai karakter suara. Audit tidak dapat memastikan kemiripan wajah atau kontinuitas render Google Flow.</p><div class="audit-list">'+rows+'</div></section>';
 }
 function characterRecoveryProfile(c){
  const n=[c.name,c.id,c.characterName,c.title].filter(Boolean).join(' ').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
