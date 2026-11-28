@@ -19,7 +19,7 @@ Set these under the Worker **Settings → Variables and Secrets → Runtime vari
 
 - `FIREBASE_PROJECT_ID`: exact Firebase project ID (public project identifier).
 - `FIREBASE_ALLOWED_EMAIL`: the one verified email address allowed to use this Worker.
-- `OPENAI_MODEL`: a model enabled for the OpenAI API project.
+- `OPENAI_MODEL`: a model ID enabled for the OpenAI API project. This is required; the Worker intentionally has no guessed/default model ID and returns a configuration error if it is missing.
 
 Add `OPENAI_API_KEY` separately as an encrypted Worker secret. Never put it in GitHub, a plain variable, app JavaScript, or chat messages.
 
@@ -57,7 +57,7 @@ Body:
 1. Create a Firebase project on Spark (no payment method required for Firebase Authentication's no-cost options).
 2. Enable Email/Password sign-in or Google sign-in; do not enable phone/SMS sign-in for this no-card setup.
 3. Create one user and verify the email address.
-4. Configure the three runtime variables above.
+4. Configure the three runtime variables above, including a verified model ID enabled for the API project.
 5. Add `OPENAI_API_KEY` as an encrypted secret.
 6. Keep `workers.dev` disabled until authentication and rate limits are reviewed.
 7. Test missing token (must return 401), wrong email (401), unverified email (401), valid allowed user (reaches provider configuration), CORS preflight, and the real browser flow.
