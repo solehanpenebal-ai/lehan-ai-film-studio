@@ -2,3 +2,10 @@ name = "lehan-ai-film-studio-ai"
 main = "src/index.js"
 compatibility_date = "2026-11-27"
 
+[[ratelimits]]
+name = "ASTRA_AI_RATE_LIMITER"
+namespace_id = "2711282026"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
