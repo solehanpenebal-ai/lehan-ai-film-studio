@@ -226,7 +226,7 @@ function buildPrompt(c,p){
   'Continuity rules: '+(prince?'Master Character Sheet Revisi 02 adalah acuan tertinggi. Wajah tidak berubah. Busana wajib marun/merah tua bersulam emas; penutup kepala wajib songket marun bermotif emas. Dilarang mengganti busana atau penutup kepala menjadi hijau atau hitam. Berlaku pada seluruh klip dan render.':(x.rules||'Preserve the approved character reference without alteration.')),
   ...(prince?['MANDATORY OFFICIAL COSTUME LOCK: DEEP MAROON / BURGUNDY ONLY WITH GOLD EMBROIDERY. MAROON-AND-GOLD SONGKET HEADWEAR ONLY. GREEN, BLACK-GREEN, OR DARK GREEN COSTUME/HEADWEAR IS STRICTLY PROHIBITED. Override conflicting legacy character metadata.']:[]),
   'Identity priority: approved reference images and Master Character Sheet override ambiguous text.'
- ].join('\n')).join('\n\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
+ ].join('\n');\n }).join('\n\n'):'NO SELECTED ON-SCREEN CHARACTERS. Show only people explicitly required by the scene description; do not invent, duplicate, or import characters from another scene.';
  const referenceHandoff=visualChars.length?visualChars.map(x=>{const views=[x.referenceFront||x.referenceImage,x.referenceSide,x.referenceFullBody].filter(Boolean).length;return '- '+x.name+': '+views+'/3 saved reference views. Download and manually attach every available approved view in Google Flow before rendering. References are not uploaded automatically.';}).join('\n'):'No on-screen character reference attachment is selected for this clip.';
  return [
  'PROMPT ENGINE 2.1 — VISUAL-ONLY GENERATION BRIEF',
