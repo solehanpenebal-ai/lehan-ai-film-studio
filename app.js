@@ -97,7 +97,7 @@ function storyStudio(p){
 }
 function characterRecoveryProfile(c){
  const n=(c.name||'').toLowerCase();
- if(n.includes('ratu cik sima'))return {identity:'Ratu dan penguasa Kerajaan Seri Bunga Tanjung.',face:'Wajah perempuan Melayu dewasa, tegas, anggun, matang, dan berwibawa.',hair:'Rambut hitam disanggul besar dan rapi.',costume:'Busana kerajaan Melayu berwarna marun tua dengan sulaman dan motif tradisional emas.',accessories:'Mahkota kerajaan tinggi berornamen bunga emas, anting, kalung, dan aksesori/perhiasan kerajaan berwarna emas.'};
+ if(n.includes('ratu cik sima'))return {identity:'Ratu dan penguasa Kerajaan Seri Bunga Tanjung.',face:'Wajah perempuan Melayu dewasa, tegas, anggun, matang, dan berwibawa.',hair:'Rambut hitam disanggul besar dan rapi.',body:'Postur perempuan dewasa yang anggun, tegap, dan berwibawa.',costume:'Busana kerajaan Melayu berwarna marun tua dengan sulaman dan motif tradisional emas.',accessories:'Mahkota kerajaan tinggi berornamen bunga emas, anting, kalung, dan aksesori/perhiasan kerajaan berwarna emas.'};
  if(n.includes('pangeran empang kuala'))return {identity:'Pangeran Melayu; tokoh kerajaan yang melintasi Lubuk Sarang Umai dan kemudian berniat meminang Mayang Sari.',face:'Wajah laki-laki Melayu dewasa, tegas, dengan kumis tipis dan janggut tipis.',hair:'Rambut hitam sebahu.',body:'Postur tegap, gagah, dan berkharisma.',costume:'Busana kebesaran kerajaan berwarna hijau kehitaman dengan motif songket dan sulaman benang emas.',accessories:'Destar/penutup kepala tradisional Melayu berwarna hitam bermotif emas, pending emas berhias batu permata hijau, keris kerajaan, dan perlengkapan kerajaan.'};
  return null;
 }
