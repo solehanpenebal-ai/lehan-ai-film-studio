@@ -267,5 +267,22 @@ $('#importFile').onchange=async e=>{
 };
 function downloadDataUrl(name,dataUrl){const a=document.createElement('a');a.href=dataUrl;a.download=name;document.body.appendChild(a);a.click();a.remove();toast('Referensi gambar disiapkan untuk diunduh.')}
 function downloadText(name,text,type='text/plain'){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);toast('File disiapkan untuk diunduh.')}
+
+/* Character dialog safety fallback: keep Add/Edit working even if another
+   dynamic binding earlier in bindDynamic() fails on a different workspace view. */
+document.addEventListener('click',function(event){
+ const addButton=event.target.closest('#newCharacter');
+ const editButton=event.target.closest('[data-edit-character]');
+ if(!addButton&&!editButton)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ try{
+  openCharacter(editButton?editButton.dataset.editCharacter:undefined);
+ }catch(error){
+  console.error('Character dialog failed to open:',error);
+  toast('Form karakter gagal dibuka. Muat ulang halaman dan coba lagi.');
+ }
+},true);
+
 render();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
