@@ -8,7 +8,7 @@ const MAX_OUTPUT_TOKENS = 1800;
 let firebaseJwksCache = null;
 let firebaseJwksFetchedAt = 0;
 
-function json(data, status) {
+function json(data, status, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -16,7 +16,8 @@ function json(data, status) {
       "cache-control": "no-store",
       "access-control-allow-origin": ALLOWED_ORIGIN,
       "vary": "Origin",
-      "x-content-type-options": "nosniff"
+      "x-content-type-options": "nosniff",
+      ...extraHeaders
     }
   });
 }
@@ -74,6 +75,7 @@ async function verifyFirebaseIdToken(token, env) {
   ) {
     throw new Error("Firebase authentication failed");
   }
+  return claims.sub;
 }
 
 function extractOutputText(payload) {
@@ -116,7 +118,7 @@ export default {
       const authorization = request.headers.get("Authorization") || "";
       const match = authorization.match(/^Bearer\s+(.+)$/i);
       if (!match) return json({ error: "Authentication required" }, 401);
-      await verifyFirebaseIdToken(match[1], env);
+      const userId = await verifyFirebaseIdToken(match[1], env);
       if (!env.OPENAI_API_KEY || !String(env.OPENAI_MODEL || "").trim()) {
         return json({ error: "AI provider is not configured. Set OPENAI_API_KEY and OPENAI_MODEL in Worker settings." }, 503);
       }
@@ -128,6 +130,14 @@ export default {
       const context = typeof body.context === "string" ? body.context : JSON.stringify(body.context || {});
       if (!message || message.length > MAX_MESSAGE_CHARS || context.length > MAX_CONTEXT_CHARS) {
         return json({ error: "Message or project context is empty or exceeds the allowed size" }, 400);
+      }
+
+      if (!env.ASTRA_AI_RATE_LIMITER) {
+        return json({ error: "Rate limiting is not configured. AI requests are disabled until the Worker binding is added." }, 503);
+      }
+      const rateLimit = await env.ASTRA_AI_RATE_LIMITER.limit({ key: userId });
+      if (!rateLimit.success) {
+        return json({ error: "Request limit reached. Please wait up to one minute before trying again." }, 429, { "retry-after": "60" });
       }
 
       const instructions = [
